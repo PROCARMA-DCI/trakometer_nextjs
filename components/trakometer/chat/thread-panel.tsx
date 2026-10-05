@@ -1,9 +1,18 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ArrowLeft, MessagesSquare, Store, Phone, Mail } from "lucide-react";
+import {
+  ArrowLeft,
+  MessagesSquare,
+  Reply,
+  Eye,
+  Store,
+  Phone,
+  Mail,
+} from "lucide-react";
 import { CONTACTS, MESSAGES } from "@/lib/trakometer/data";
-import type { ChatRow, Message } from "@/lib/trakometer/types";
+import { cn } from "@/lib/utils";
+import type { ChatRow, Message, ThreadMode } from "@/lib/trakometer/types";
 import MessageBubble from "./message-bubble";
 import AppointmentCard from "./appointment-card";
 import Composer from "./composer";
@@ -11,6 +20,8 @@ import Composer from "./composer";
 type Flags = Record<string, boolean>;
 interface Props {
   row: ChatRow | null;
+  mode: ThreadMode;
+  onMode: (m: ThreadMode) => void;
   onBack: () => void;
   msgById: Record<string, Message>;
   extra: Message[];
@@ -31,12 +42,11 @@ interface Props {
 }
 
 export default function ThreadPanel(p: Props) {
-  const endRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const rowN = p.row?.n;
-  const count = p.extra.length;
   useEffect(() => {
-    endRef.current?.scrollIntoView();
-  }, [rowN, count]);
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [rowN, p.mode]);
 
   if (!p.row) {
     return (
@@ -45,17 +55,26 @@ export default function ThreadPanel(p: Props) {
           <div className="flex size-16 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <MessagesSquare className="size-7" />
           </div>
-          <p className="text-sm text-muted-foreground">Select a conversation to start chatting.</p>
+          <p className="text-sm text-muted-foreground">
+            Pick a conversation. Use{" "}
+            <Reply className="inline size-3.5 align-[-2px]" /> to reply to one
+            thread, or <Eye className="inline size-3.5 align-[-2px]" /> to open
+            the customer&apos;s full history.
+          </p>
         </div>
       </section>
     );
   }
   const root = p.msgById[p.row.msg];
   const c = CONTACTS[root.contact];
-  const list = MESSAGES.filter((m) => m.contact === root.contact)
+  let list = MESSAGES.filter((m) => m.contact === root.contact)
     .concat(p.extra.filter((m) => m.contact === root.contact))
     .filter((m) => !p.deleted[m.id]);
-  const target = p.replyMsg ? p.msgById[p.replyMsg] || p.extra.find((e) => e.id === p.replyMsg) : null;
+  if (p.mode === "reply")
+    list = list.filter((m) => m.id === root.id || m.replyOf === root.id);
+  const target = p.replyMsg
+    ? p.msgById[p.replyMsg] || p.extra.find((e) => e.id === p.replyMsg)
+    : null;
 
   return (
     <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -74,7 +93,9 @@ export default function ThreadPanel(p: Props) {
           {c.initials}
         </span>
         <div className="min-w-0">
-          <strong className="block truncate text-sm font-semibold">{c.name}</strong>
+          <strong className="block truncate text-sm font-semibold">
+            {c.name}
+          </strong>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
             <span>
               Contract <span className="font-mono text-primary">{c.id}</span>
@@ -90,8 +111,41 @@ export default function ThreadPanel(p: Props) {
             </span>
           </div>
         </div>
+        <div className="flex-1" />
+        <div className="flex shrink-0 items-center gap-1 rounded-lg bg-muted p-1">
+          <button
+            onClick={() => p.onMode("reply")}
+            title="This thread"
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground",
+              p.mode === "reply" && "bg-background text-foreground shadow-sm",
+            )}
+          >
+            <Reply className="size-3.5" />
+            <span className="hidden sm:inline">This thread</span>
+          </button>
+          <button
+            onClick={() => p.onMode("full")}
+            title="Full history"
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground",
+              p.mode === "full" && "bg-background text-foreground shadow-sm",
+            )}
+          >
+            <Eye className="size-3.5" />
+            <span className="hidden sm:inline">Full history</span>
+          </button>
+        </div>
       </div>
-      <div className="flex-1 space-y-4 overflow-y-auto bg-muted/20 p-3 sm:p-4">
+      <div
+        ref={scrollRef}
+        className="scroll-whatsapp flex-1 space-y-4 overflow-y-auto bg-muted/20 p-3 sm:p-4"
+      >
+        <div className="text-xs text-muted-foreground">
+          {p.mode === "reply"
+            ? "Replying to one thread · open Full history to see every message"
+            : `Full conversation history · ${list.length} messages`}
+        </div>
         {list.map((m) =>
           m.appt ? (
             <AppointmentCard
@@ -122,16 +176,21 @@ export default function ThreadPanel(p: Props) {
             />
           ),
         )}
-        <div ref={endRef} />
       </div>
-      <Composer
-        key={p.row.n + ":" + (p.replyMsg ?? "") + p.draftSeed}
-        replyTitle={target ? `Replying to ${target.from === "cust" ? c.name : "AIZAH AWAIS"} · ${target.time}` : null}
-        initial={p.draftSeed}
-        onCancelReply={p.onCancelReply}
-        onSchedule={p.onOpenSchedule}
-        onSend={(body, via) => p.onSend(root.contact, body, via)}
-      />
+      {target && (
+        <Composer
+          key={p.row.n + ":" + (p.replyMsg ?? "") + p.draftSeed}
+          replyTitle={
+            target
+              ? `Replying to ${target.from === "cust" ? c.name : "AIZAH AWAIS"} · ${target.time}`
+              : null
+          }
+          initial={p.draftSeed}
+          onCancelReply={p.onCancelReply}
+          onSchedule={p.onOpenSchedule}
+          onSend={(body, via) => p.onSend(root.contact, body, via)}
+        />
+      )}
     </section>
   );
 }

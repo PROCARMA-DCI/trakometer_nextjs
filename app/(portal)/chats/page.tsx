@@ -5,5 +5,9 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <ChatScreen />;
+  return (
+    <div className="flex min-h-0 flex-1 flex-col px-4">
+      <ChatScreen />
+    </div>
+  );
 }

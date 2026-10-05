@@ -1,13 +1,19 @@
 "use client";
 
 import { CHAT_ROWS, CONTACTS, MESSAGES } from "@/lib/trakometer/data";
-import type { AlertFilter, ChannelId, Message } from "@/lib/trakometer/types";
+import type {
+  AlertFilter,
+  ChannelId,
+  Message,
+  ThreadMode,
+} from "@/lib/trakometer/types";
 import { fmtTime } from "@/lib/trakometer/utils";
 import { Unplug } from "lucide-react";
 import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { usePortal } from "../portal-provider";
 import ChannelBar from "./channel-bar";
 import ConversationList from "./conversation-list";
+import QuickReplyModal from "./quick-reply-modal";
 import ServicePlusModal from "./service-plus-modal";
 import ThreadPanel from "./thread-panel";
 
@@ -21,8 +27,10 @@ export default function ChatScreen() {
   const [spinning, setSpinning] = useState(false);
   const [newestFirst, setNewestFirst] = useState(true);
   const [selected, setSelected] = useState<number | null>(null);
+  const [mode, setMode] = useState<ThreadMode>("reply");
   const [replyMsg, setReplyMsg] = useState<string | null>(null);
   const [draftSeed, setDraftSeed] = useState("");
+  const [quick, setQuick] = useState<number | null>(null);
   const [serviceModal, setServiceModal] = useState(false);
   const [starred, setStarred] = useState<Flags>({});
   const [flagged, setFlagged] = useState<Flags>({ h1: true });
@@ -60,8 +68,9 @@ export default function ChatScreen() {
     flag: all.filter((x) => flagged[x.msg]).length,
   };
 
-  function openRow(n: number) {
+  function openRow(n: number, m: ThreadMode) {
     setSelected(n);
+    setMode(m);
     setReplyMsg(null);
     setDraftSeed("");
     setRead((r) => ({ ...r, [n]: true }));
@@ -93,11 +102,12 @@ export default function ChatScreen() {
     showToast(via || "Reply sent");
   }
 
+  const quickRow = CHAT_ROWS.find((r) => r.n === quick) || null;
   const selRow =
     CHAT_ROWS.find((r) => r.n === selected && !deleted[r.msg]) || null;
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className={selected !== null ? "hidden md:block" : undefined}>
         <ChannelBar
           channel={channel}
@@ -125,7 +135,7 @@ export default function ChatScreen() {
           until you switch back online.
         </div>
       )}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         <ConversationList
           rows={rows}
           msgById={msgById}
@@ -138,14 +148,23 @@ export default function ChatScreen() {
           newestFirst={newestFirst}
           onToggleSort={() => setNewestFirst(!newestFirst)}
           onOpen={openRow}
+          onQuick={(n) => {
+            setQuick(n);
+            setRead((r) => ({ ...r, [n]: true }));
+          }}
           onConfirm={(n) => {
-            openRow(n);
+            openRow(n, "reply");
             setServiceModal(true);
           }}
           onDecline={() => showToast("Appointment request declined")}
         />
         <ThreadPanel
           row={selRow}
+          mode={mode}
+          onMode={(m) => {
+            setMode(m);
+            setReplyMsg(null);
+          }}
           onBack={() => setSelected(null)}
           msgById={msgById}
           extra={extra}
@@ -177,6 +196,31 @@ export default function ChatScreen() {
           onOpenSchedule={() => setServiceModal(true)}
         />
       </div>
+
+      {quickRow && (
+        <QuickReplyModal
+          message={msgById[quickRow.msg]}
+          starred={!!starred[quickRow.msg]}
+          onStar={() => toggle(setStarred)(quickRow.msg)}
+          onClose={() => setQuick(null)}
+          onOpenThread={() => {
+            setQuick(null);
+            openRow(quickRow.n, "reply");
+          }}
+          onSend={(body, email) => {
+            const m = msgById[quickRow.msg];
+            addReply(
+              m.contact,
+              body,
+              quickRow.msg,
+              "Reply sent to " +
+                CONTACTS[m.contact].name +
+                (email ? " via email and app" : " via app"),
+            );
+            setQuick(null);
+          }}
+        />
+      )}
 
       {serviceModal && selRow && (
         <ServicePlusModal
