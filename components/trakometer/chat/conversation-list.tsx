@@ -75,9 +75,9 @@ export default function ConversationList(p: Props) {
               key={r.n}
               role="button"
               tabIndex={0}
-              onClick={() => p.onOpen(r.n, "reply")}
+              // onClick={() => p.onOpen(r.n, "reply")}
               className={cn(
-                "flex cursor-pointer gap-2.5 border-b px-3 py-2.5 transition-colors hover:bg-muted/50",
+                "flex cursor-text gap-2.5 border-b px-3 py-2.5 transition-colors hover:bg-muted/50",
                 p.selected === r.n && "bg-primary/5",
               )}
             >
