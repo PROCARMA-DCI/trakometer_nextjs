@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { BASE_URL } from "@/config";
-import { backendFetch } from "@/lib/api/server";
+import { ApiError, backendFetch } from "@/lib/api/server";
 import { getAccessToken } from "@/providers/auth/session";
 
 const RESOURCE_BACKENDS: Record<string, string> = {
@@ -18,9 +18,12 @@ async function proxy(request: NextRequest, slugParts: string[]) {
 
   const backendPath = `/${resource}${rest.length ? `/${rest.join("/")}` : ""}${request.nextUrl.search}`;
 
+  // No token → 401 so the client (`fetching`) can send the user to /login.
   const token = await getAccessToken();
-  const headers: Record<string, string> = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (!token) {
+    return NextResponse.json({ detail: "Not authenticated" }, { status: 401 });
+  }
+  const headers: Record<string, string> = { Authorization: `${token}` };
 
   const hasBody = !["GET", "HEAD"].includes(request.method);
   if (hasBody) {
@@ -42,7 +45,13 @@ async function proxy(request: NextRequest, slugParts: string[]) {
       baseUrl,
     );
     return NextResponse.json(data);
-  } catch {
+  } catch (err) {
+    // Pass the backend's real status/body through (401, 422, …) instead of a blanket 502.
+    if (err instanceof ApiError) {
+      return NextResponse.json(err.body ?? { detail: err.message }, {
+        status: err.status,
+      });
+    }
     return NextResponse.json(
       { detail: "Failed to reach backend" },
       { status: 502 },

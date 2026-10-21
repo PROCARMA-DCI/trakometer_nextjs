@@ -45,6 +45,7 @@ export interface ChatRow {
 }
 
 export interface Dealer {
+  id?: string;
   account: string;
   state: string;
   classic: number;
@@ -67,7 +68,46 @@ export interface FeedItem {
   from: 'Admin' | 'Customer';
 }
 
-export type RangeKey = 'ITD' | 'YTD' | 'MTD' | '30 DAY';
+export type RangeKey = 'ITD' | 'YTD' | 'MTD' | '30';
 export type ChannelId = 'ngauge' | 'trade' | 'service' | 'dash' | 'anon' | 'kanopi' | 'notif';
 export type AlertFilter = 'star' | 'new' | 'flag' | null;
 export type ThreadMode = 'reply' | 'full';
+
+/** Raw plan row from `react/Trakometer/dashboardData` — the backend sends every number as a string. */
+export interface DashboardPlan {
+  ShowOnTrakometer: string;
+  DealerTitle: string;
+  DealerID: string;
+  totalNotification: string;
+  totalContract: string;
+  totalMature: string;
+  totalCancel: string;
+  comp: string;
+  express: string;
+  Gps: string;
+  LpSaleContract: string;
+  LpServiceContract: string;
+  LoyaltyCash: string;
+  TotalGps: string;
+  totalRedemtion: string;
+  prev_data: string;
+}
+
+export interface DashboardData {
+  success: number;
+  message: string;
+  pcp_user_id: number;
+  FixedDateParaMater: string;
+  count: number;
+  serviceplus: number;
+  trakoCategory: { TrakoCategoryID: string; TrakoCategoryName: string }[];
+  sum: {
+    TotalClasic: number;
+    TotalRedeem: number;
+    TotalComp: number;
+    TotalExp: number;
+    TotalCancel: number;
+    TotalMatured: number;
+  };
+  plans: DashboardPlan[];
+}

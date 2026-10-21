@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Gauge, MessagesSquare, Search, X, Globe, LogOut } from "lucide-react";
 import { usePortal } from "./portal-provider";
@@ -13,17 +13,16 @@ import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
-const RANGES: RangeKey[] = ["ITD", "YTD", "MTD", "30 DAY"];
+const RANGES: RangeKey[] = ["ITD", "YTD", "MTD", "30"];
 
 export default function TopBar() {
   const pathname = usePathname() ?? "/";
-  const router = useRouter();
   const isEmbedded = pathname.startsWith("/test");
   const localPath = isEmbedded ? pathname.replace(/^\/test/, "") || "/" : pathname;
   const isChats = localPath.startsWith("/chats");
   const base = isEmbedded ? "/test" : "";
 
-  const { range, setRange, search, setSearch, online, setOnline } = usePortal();
+  const { range, setRange, search, setSearch, online, setOnline, logout } = usePortal();
   const [q, setQ] = useState(search);
   const [tz, setTz] = useState("");
   useEffect(() => {
@@ -32,11 +31,6 @@ export default function TopBar() {
     setTz(browserTimeZone());
   }, []);
 
-  async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
-  }
 
   return (
     <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-3 border-b bg-background px-4">
@@ -82,7 +76,7 @@ export default function TopBar() {
               range === r && "bg-primary text-primary-foreground hover:text-primary-foreground"
             )}
           >
-            {r}
+            {r === "30" ? "30 DAY" : r}
           </button>
         ))}
       </div>

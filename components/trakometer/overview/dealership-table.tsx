@@ -26,8 +26,8 @@ export default function DealershipTable({ dealers }: { dealers: Dealer[] }) {
     const r = dealers.slice();
     if (key === "n") return dir < 0 ? r.reverse() : r;
     return r.sort((a, b) => {
-      const ak = a[key as keyof Dealer];
-      const bk = b[key as keyof Dealer];
+      const ak = a[key as Exclude<Key, "n">];
+      const bk = b[key as Exclude<Key, "n">];
       return (ak > bk ? 1 : ak < bk ? -1 : 0) * dir;
     });
   }, [dealers, key, dir]);
@@ -73,11 +73,11 @@ export default function DealershipTable({ dealers }: { dealers: Dealer[] }) {
         </thead>
         <tbody className="divide-y">
           {rows.map((d, i) => (
-            <tr key={d.account} className="hover:bg-muted/40">
+            <tr key={d.id ?? d.account} className="hover:bg-muted/40">
               <td className="px-3 py-2 text-muted-foreground">{i + 1}</td>
               <td className="px-3 py-2">
                 <div className="font-medium">{d.account}</div>
-                <div className="text-xs text-muted-foreground">{d.state}</div>
+                {d.state && <div className="text-xs text-muted-foreground">{d.state}</div>}
               </td>
               <td className="px-3 py-2 text-right font-mono text-sm tabular-nums">{fmtNum(d.classic)}</td>
               {numCell(d.com)}

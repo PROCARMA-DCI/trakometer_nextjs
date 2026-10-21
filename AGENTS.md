@@ -13,10 +13,12 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 Next.js + Tailwind v4 + shadcn/ui + lucide-react. Portal pages in `app/(portal)/`, chat UI in `components/trakometer/chat/`, data/types/utils in `lib/trakometer/`. Check types with `npx tsc --noEmit`.
 
 ## Conventions
+
 - **Buttons must show a pointer cursor.** Tailwind v4 defaults buttons to `cursor: default`, so `app/globals.css` (`@layer base`) sets `cursor: pointer` on `button:not(:disabled)` and `[role="button"]:not([aria-disabled="true"])`. Don't remove it.
 - Most of `components/`, `lib/`, `app/(portal)/` is **untracked in git** (only the initial commit exists). Deleting a file there is not recoverable from git. Commit early or avoid deleting. (Once recovered a deleted file from `.next/dev/static/chunks/*.map`: `sections[].map.sourcesContent`.)
 
 ## API calls & loader (use these reusable helpers — don't hand-roll fetch/spinners)
+
 Flow: **client component → `fetching()` → same-origin `/api/<resource>/...` → catch-all proxy `app/api/[...slug]/route.ts` → backend**. The browser never talks to the backend directly and never holds the token.
 
 - **Client calls: always use `fetching()`** from `lib/api/client.ts`. Never write raw `fetch` + `res.json()` + manual loading state in components.
@@ -30,10 +32,11 @@ Flow: **client component → `fetching()` → same-origin `/api/<resource>/...` 
   - `showLoader: false` → no loader (silent polling/background refresh)
 - **Loader outside `fetching`:** `useLoader()` (`show`/`hide`/`setLoading`/`badgeLoading`/`isBadgeLoading`) in components, or `setGlobalLoading` / `setBadgeLoading` from plain functions. `LoaderProvider` must be mounted. These are client-only; calling them on the server is a no-op.
 - **Server side** (Route Handlers, Server Components, server actions) use `lib/api/server.ts`: `backendFetch(path, init, baseUrl?)` and `authorizedFetch(path, token, init, baseUrl?)`. They throw `ApiError(status, message)` on non-2xx. Get the token with `getAccessToken()` from `providers/auth/session.ts` (httpOnly cookie, **server-only**, since it imports `next/headers`).
-- **Proxy `app/api/[...slug]/route.ts`:** first slug segment is the backend resource, so `/api/category/5?x=1` → `<BASE_URL>/category/5?x=1`. It attaches `Authorization: Bearer <token>` and forwards the raw body and content-type. A resource served by a different backend goes in `RESOURCE_BACKENDS`. Add a dedicated route file under `app/api/<name>/` only when you need custom server logic; otherwise rely on the catch-all.
+- **Proxy `app/api/[...slug]/route.ts`:** first slug segment is the backend resource, so `/api/category/5?x=1` → `<BASE_URL>/category/5?x=1`. It attaches `Authorization: <token>` and forwards the raw body and content-type. A resource served by a different backend goes in `RESOURCE_BACKENDS`. Add a dedicated route file under `app/api/<name>/` only when you need custom server logic; otherwise rely on the catch-all.
 - Backend base URL comes from `config.ts` (`BASE_URL`). Don't hard-code backend URLs in components.
 
 ## Chat screen design (current state)
+
 Files: `chat-screen.tsx` (state owner), `conversation-list.tsx`, `thread-panel.tsx`, `composer.tsx`, `message-bubble.tsx`, `appointment-card.tsx`, `quick-reply-modal.tsx`, `service-plus-modal.tsx`, `channel-bar.tsx`.
 
 - **WhatsApp/Messenger-style layout, responsive.** At `md` and up, list and thread sit side by side. Below `md`, only one shows at a time:
@@ -51,6 +54,7 @@ Files: `chat-screen.tsx` (state owner), `conversation-list.tsx`, `thread-panel.t
 - `onSend` uses `replyOf = replyMsg ?? undefined`.
 
 ## Status / next steps
+
 - Everything type-checks. Not yet visually tested in a browser (mobile width especially).
 - The user said they might want the old **inline reply box under each message** back (instead of only the bottom composer). Ask before changing.
 - `ThreadMode` type (`'reply' | 'full'`) lives in `lib/trakometer/types.ts`.

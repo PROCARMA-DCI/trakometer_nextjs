@@ -104,7 +104,7 @@ export async function fetching<T = Record<string, any>>({
   url,
   method = "POST",
   body,
-  isFormdata,
+  isFormdata = true,
   setLoading,
   badgeLoading,
   showLoader = true,

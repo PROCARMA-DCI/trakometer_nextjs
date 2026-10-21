@@ -2,9 +2,12 @@ import { BASE_URL } from "@/config";
 
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
-    super(message);
+  /** Parsed backend error body (e.g. `{ detail }`), so proxies can pass it on. */
+  body: unknown;
+  constructor(status: number, body: unknown) {
+    super(typeof body === "string" ? body : `Request failed (${status})`);
     this.status = status;
+    this.body = body;
   }
 }
 
@@ -35,7 +38,7 @@ export async function authorizedFetch<T>(
       ...init,
       headers: {
         ...(init.headers ?? {}),
-        Authorization: `Bearer ${token}`,
+        Authorization: `${token}`,
       },
     },
     baseUrl,

@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
-import { Onest, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import LoaderProvider from "@/providers/LoaderContext";
+import type { Metadata } from "next";
+import { JetBrains_Mono, Onest } from "next/font/google";
 import "./globals.css";
 
 const onest = Onest({
@@ -34,7 +35,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           enableSystem
           disableTransitionOnChange
         >
-          <TooltipProvider>{children}</TooltipProvider>
+          <LoaderProvider>
+            <TooltipProvider>{children}</TooltipProvider>
+          </LoaderProvider>
           <Toaster position="top-right" richColors />
         </ThemeProvider>
       </body>
