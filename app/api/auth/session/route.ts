@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
-import { ACCESS_TOKEN_COOKIE } from "@/providers/auth/config";
-
-// The portal runs inside an iframe on another site, so the cookie is
-// third-party: it needs SameSite=None + Secure to be sent at all in production.
-const isProd = process.env.NODE_ENV === "production";
+import { ACCESS_TOKEN_COOKIE, ACCESS_TOKEN_COOKIE_OPTIONS } from "@/providers/auth/config";
 
 /** Save the token handed over by the host app (`?id=<token>`) in an httpOnly cookie. */
 export async function POST(request: Request) {
@@ -13,13 +9,7 @@ export async function POST(request: Request) {
   }
 
   const response = NextResponse.json({ ok: true });
-  response.cookies.set(ACCESS_TOKEN_COOKIE, token.trim(), {
-    httpOnly: true,
-    sameSite: isProd ? "none" : "lax",
-    secure: isProd,
-    path: "/",
-    maxAge: 60 * 60 * 8,
-  });
+  response.cookies.set(ACCESS_TOKEN_COOKIE, token.trim(), ACCESS_TOKEN_COOKIE_OPTIONS);
   return response;
 }
 

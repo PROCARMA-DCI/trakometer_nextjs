@@ -28,8 +28,8 @@ export default function OverviewScreen() {
     range,
   } = usePortal();
   const [categories, setCategories] = useState<Category[]>([]);
-  // Chips = API trakoCategory. null = user hasn't touched them yet (default:
-  // everything except "app only" categories, sent to the API as "" = no filter).
+  // Chips = API trakoCategory. null = user hasn't touched them yet (none on,
+  // sent to the API as "" = no filter).
   const [selected, setSelected] = useState<string[] | null>(null);
   const [stateFilter, setStateFilter] = useState<string | null>(null);
   const [feed, setFeed] = useState<FeedItem[]>(INITIAL_FEED);
@@ -37,6 +37,7 @@ export default function OverviewScreen() {
     OH: true,
     LA: true,
   });
+  console.log({ selected });
   const [fresh, setFresh] = useState<Record<string, boolean>>({});
   const idx = useRef(0);
 
@@ -47,8 +48,7 @@ export default function OverviewScreen() {
   if (data && !categories.length && data.trakoCategory.length)
     setCategories(data.trakoCategory);
 
-  const isOn = (c: Category): boolean =>
-    selected ? selected.includes(c.TrakoCategoryID) : !/app/i.test(c.TrakoCategoryName);
+  const isOn = (c: Category): boolean => selected?.includes(c.TrakoCategoryID) ?? false;
   const toggleCategory = (id: string) => {
     const current = categories.filter(isOn).map((c) => c.TrakoCategoryID);
     setSelected(

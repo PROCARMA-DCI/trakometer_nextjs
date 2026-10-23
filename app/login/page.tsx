@@ -1,12 +1,19 @@
 "use client";
 
-import { Suspense, useState, type FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { fetching } from "@/lib/api/client";
 import { Gauge, Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState, type SubmitEvent } from "react";
 
 function LoginForm() {
   const router = useRouter();
@@ -18,19 +25,19 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: FormEvent) {
+  async function onSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+      const res = await fetching({
+        url: "/api/auth/login",
+        body: { username, password },
+        isFormdata: false,
+        showLoader: false,
       });
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        setError(data?.error ?? "Invalid username or password.");
+        setError(res.error ?? "Invalid username or password.");
         return;
       }
       router.push(redirectTo);
@@ -81,10 +88,6 @@ function LoginForm() {
             {loading && <Loader2 className="animate-spin" />}
             Sign in
           </Button>
-          <p className="text-center text-xs text-muted-foreground">
-            Demo credentials: <span className="font-mono">test</span> /{" "}
-            <span className="font-mono">123</span>
-          </p>
         </form>
       </CardContent>
     </Card>

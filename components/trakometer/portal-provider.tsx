@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { fetching } from "@/lib/api/client";
 import type { DashboardData, RangeKey } from "@/lib/trakometer/types";
 import { Gauge, Loader2, ShieldAlert } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -63,7 +64,7 @@ export function PortalProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("checking");
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
-
+  const router = useRouter();
   const showToast = (msg: string) => toast.success(msg);
 
   // Search is applied server-side, so debounce it.
@@ -75,12 +76,14 @@ export function PortalProvider({ children }: { children: ReactNode }) {
 
   // 1. Save the token from the URL (guarded: StrictMode runs effects twice).
   const booted = useRef(false);
+  const usedUrlToken = useRef(false);
   useEffect(() => {
     if (booted.current) return;
     booted.current = true;
     (async () => {
       const url = new URL(window.location.href);
       const token = url.searchParams.get(TOKEN_PARAM);
+      usedUrlToken.current = Boolean(token);
       if (token) {
         const res = await fetching({
           url: "/api/auth/session",
@@ -88,15 +91,13 @@ export function PortalProvider({ children }: { children: ReactNode }) {
           isFormdata: false,
           showLoader: false,
         });
-        // Keep the token out of the address bar / history either way.
-        url.searchParams.delete(TOKEN_PARAM);
-        window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+
         if (!res.ok) {
           setStatus("denied");
           return;
         }
       }
-      // No `id` → rely on a cookie saved earlier; the dashboard call validates it.
+      // No `id` → rely on the cookie (proxy.ts already ensured one exists); the dashboard call validates it.
       setSessionReady(true);
     })();
   }, []);
@@ -120,6 +121,11 @@ export function PortalProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       if (res.status === 401 || res.status === 403) {
         setDashboard(null);
+        // Stale/invalid cookie from a normal visit → sign in again; a bad `?id=` token shows the error screen.
+        if (!usedUrlToken.current) {
+          router.replace("/login");
+          return;
+        }
         setStatus("denied");
         return;
       }
@@ -132,6 +138,13 @@ export function PortalProvider({ children }: { children: ReactNode }) {
       setDashboardError(null);
       setDashboard(res);
       setStatus("ready");
+
+      // Token proved valid → keep it out of the address bar / history.
+      const url = new URL(window.location.href);
+      if (url.searchParams.has(TOKEN_PARAM)) {
+        url.searchParams.delete(TOKEN_PARAM);
+        window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+      }
     })();
     return () => {
       cancelled = true;
@@ -163,8 +176,8 @@ export function PortalProvider({ children }: { children: ReactNode }) {
               {dashboardError ??
                 "Your access token is missing or has expired. Please reopen Trakometer from the main application."}
             </p>
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              Try again
+            <Button variant="outline" onClick={() => router.push("/login")}>
+              Try with Login
             </Button>
           </div>
         )}
