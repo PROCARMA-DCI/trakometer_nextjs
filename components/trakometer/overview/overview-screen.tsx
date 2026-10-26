@@ -2,18 +2,15 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { DEMO_INCOMING, INITIAL_FEED } from "@/lib/trakometer/data";
-import type { DashboardData, Dealer, FeedItem } from "@/lib/trakometer/types";
-import { fmtNum, fmtTime } from "@/lib/trakometer/utils";
+import type { DashboardData, Dealer } from "@/lib/trakometer/types";
+import { fmtNum } from "@/lib/trakometer/utils";
 import { cn } from "@/lib/utils";
 import { CheckSquare, Square, TrendingDown, TrendingUp, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePortal } from "../portal-provider";
 import DealershipTable from "./dealership-table";
 import NetworkMap from "./network-map";
 import NotificationFeed from "./notification-feed";
-
-const BLINK_MS = 8000;
 
 type Category = DashboardData["trakoCategory"][number];
 
@@ -32,14 +29,11 @@ export default function OverviewScreen() {
   // sent to the API as "" = no filter).
   const [selected, setSelected] = useState<string[] | null>(null);
   const [stateFilter, setStateFilter] = useState<string | null>(null);
-  const [feed, setFeed] = useState<FeedItem[]>(INITIAL_FEED);
   const [blink, setBlink] = useState<Record<string, boolean>>({
     OH: true,
     LA: true,
   });
   console.log({ selected });
-  const [fresh, setFresh] = useState<Record<string, boolean>>({});
-  const idx = useRef(0);
 
   const categoryIds = selected?.join(",") ?? "";
   useEffect(() => setCategoryIds(categoryIds), [categoryIds, setCategoryIds]);
@@ -48,7 +42,8 @@ export default function OverviewScreen() {
   if (data && !categories.length && data.trakoCategory.length)
     setCategories(data.trakoCategory);
 
-  const isOn = (c: Category): boolean => selected?.includes(c.TrakoCategoryID) ?? false;
+  const isOn = (c: Category): boolean =>
+    selected?.includes(c.TrakoCategoryID) ?? false;
   const toggleCategory = (id: string) => {
     const current = categories.filter(isOn).map((c) => c.TrakoCategoryID);
     setSelected(
@@ -56,41 +51,10 @@ export default function OverviewScreen() {
     );
   };
 
-  const pushNotification = useCallback((item: FeedItem) => {
-    setFeed((f) => [item, ...f]);
-    setBlink((b) => ({ ...b, [item.state]: true }));
-    setFresh((f) => ({ ...f, [item.id]: true }));
-    setTimeout(() => {
-      setBlink((b) => {
-        const n = { ...b };
-        delete n[item.state];
-        return n;
-      });
-      setFresh((f) => {
-        const n = { ...f };
-        delete n[item.id];
-        return n;
-      });
-    }, BLINK_MS);
-  }, []);
-
-  // Stand-in for a realtime source (websocket / SSE / polling) — call pushNotification(item) per event.
   useEffect(() => {
     const t0 = setTimeout(() => setBlink({}), 9000);
-    const iv = setInterval(() => {
-      const src = DEMO_INCOMING[idx.current++ % DEMO_INCOMING.length];
-      pushNotification({
-        ...src,
-        id: "n" + Date.now(),
-        date: "09-25-2026",
-        time: fmtTime(new Date()),
-      });
-    }, 7000);
-    return () => {
-      clearTimeout(t0);
-      clearInterval(iv);
-    };
-  }, [pushNotification]);
+    return () => clearTimeout(t0);
+  }, []);
 
   const allDealers = useMemo<Dealer[]>(
     () =>
@@ -132,8 +96,8 @@ export default function OverviewScreen() {
   }, [data]);
 
   return (
-    <div className="grid flex-1 gap-4 overflow-auto p-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <Card className="gap-3 py-4">
+    <div className="flex flex-1 flex-wrap items-start gap-4 overflow-auto p-4 lg:flex-nowrap">
+      <Card className="max-h-screen w-full min-w-0 gap-3 overflow-y-auto py-4 lg:w-auto lg:flex-1">
         <CardHeader className="flex flex-row flex-wrap items-center gap-2 px-4">
           <h2 className="text-sm font-semibold">Dealership contracts</h2>
           <span className="text-xs text-muted-foreground">
@@ -214,11 +178,10 @@ export default function OverviewScreen() {
         </CardContent>
       </Card>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex w-full min-w-0 flex-col gap-4 lg:w-4/12 lg:shrink-0">
         <NotificationFeed
-          feed={feed}
-          fresh={fresh}
-          onDismiss={(id) => setFeed((f) => f.filter((x) => x.id !== id))}
+          notifications={data?.notifications ?? []}
+          users={data?.mobileuser ?? []}
         />
         <NetworkMap
           blink={blink}

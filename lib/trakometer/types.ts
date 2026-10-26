@@ -93,6 +93,30 @@ export interface DashboardPlan {
   prev_data: string;
 }
 
+/** Row of `notifications` in the dashboard payload. */
+export interface DashboardNotification {
+  noti_id: string;
+  noti_message: string;
+  ContractID: string;
+  /** "YYYY-MM-DD HH:mm:ss" */
+  noti_date: string;
+  noti_status: string;
+  DealerID: string;
+  noti_type: string;
+}
+
+/** Row of `mobileuser` (recent users) in the dashboard payload. */
+export interface DashboardMobileUser {
+  user_profile_name: string;
+  device_type: string;
+  CustomerImage: string | null;
+  /** File name only for now; backend will send a full URL. */
+  DealerLogo: string | null;
+  DealerTitle: string;
+  /** "YYYY-MM-DD HH:mm:ss" */
+  date_added: string;
+}
+
 export interface DashboardData {
   success: number;
   message: string;
@@ -110,4 +134,6 @@ export interface DashboardData {
     TotalMatured: number;
   };
   plans: DashboardPlan[];
+  notifications: DashboardNotification[];
+  mobileuser: DashboardMobileUser[];
 }
