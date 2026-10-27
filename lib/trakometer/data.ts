@@ -62,33 +62,6 @@ export const TILES: [string, number, number][] = [
   ["FL", 8, 9],
 ];
 
-export const ACTIVE_STATES = [
-  "WA",
-  "CA",
-  "NV",
-  "AZ",
-  "CO",
-  "TX",
-  "OK",
-  "LA",
-  "MS",
-  "AL",
-  "GA",
-  "FL",
-  "TN",
-  "KY",
-  "WI",
-  "OH",
-  "PA",
-  "NY",
-  "VA",
-  "NC",
-  "WV",
-  "NJ",
-  "VT",
-  "DE",
-];
-
 const d = (
   account: string,
   state: string,

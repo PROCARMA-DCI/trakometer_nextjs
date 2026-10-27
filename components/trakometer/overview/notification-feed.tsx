@@ -130,13 +130,15 @@ export default function NotificationFeed({
                     {timeAgo(u.date_added)}
                   </span>
                 </div>
-                <img
-                  src={u?.DealerLogo ?? ""}
-                  alt="Dealer logo"
-                  width={50}
-                  height={50}
-                  className="shrink-0 rounded-full"
-                />
+                {u?.DealerLogo && (
+                  <img
+                    src={u?.DealerLogo}
+                    alt="Dealer logo"
+                    width={50}
+                    height={50}
+                    className="shrink-0 rounded-full"
+                  />
+                )}
               </div>
             ))
           ) : (

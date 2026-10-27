@@ -29,10 +29,6 @@ export default function OverviewScreen() {
   // sent to the API as "" = no filter).
   const [selected, setSelected] = useState<string[] | null>(null);
   const [stateFilter, setStateFilter] = useState<string | null>(null);
-  const [blink, setBlink] = useState<Record<string, boolean>>({
-    OH: true,
-    LA: true,
-  });
   console.log({ selected });
 
   const categoryIds = selected?.join(",") ?? "";
@@ -50,11 +46,6 @@ export default function OverviewScreen() {
       current.includes(id) ? current.filter((x) => x !== id) : [...current, id],
     );
   };
-
-  useEffect(() => {
-    const t0 = setTimeout(() => setBlink({}), 9000);
-    return () => clearTimeout(t0);
-  }, []);
 
   const allDealers = useMemo<Dealer[]>(
     () =>
@@ -184,7 +175,7 @@ export default function OverviewScreen() {
           users={data?.mobileuser ?? []}
         />
         <NetworkMap
-          blink={blink}
+          states={data?.notificationsbystate ?? []}
           selected={stateFilter}
           onPick={(s) => setStateFilter((cur) => (cur === s ? null : s))}
         />

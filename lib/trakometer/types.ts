@@ -117,6 +117,12 @@ export interface DashboardMobileUser {
   date_added: string;
 }
 
+export interface DashboardStateNotification {
+  StateCode: string;
+  StateTitle: string;
+  CountryCode: string;
+}
+
 export interface DashboardData {
   success: number;
   message: string;
@@ -136,4 +142,5 @@ export interface DashboardData {
   plans: DashboardPlan[];
   notifications: DashboardNotification[];
   mobileuser: DashboardMobileUser[];
+  notificationsbystate: DashboardStateNotification[];
 }
