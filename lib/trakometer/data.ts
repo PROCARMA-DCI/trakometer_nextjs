@@ -444,7 +444,7 @@ export const CHANNELS: { id: ChannelId; label: string; count?: number }[] = [
   { id: "ngauge", label: "N-Gauge" },
   { id: "trade", label: "Value My Trade" },
   { id: "service", label: "Service Plus" },
-  { id: "dash", label: "Dashboard" },
+
   { id: "anon", label: "Anonymous", count: 0 },
   { id: "kanopi", label: "Kanopi", count: 66 },
   { id: "notif", label: "Notifications", count: 3 },

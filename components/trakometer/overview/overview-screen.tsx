@@ -29,7 +29,6 @@ export default function OverviewScreen() {
   // sent to the API as "" = no filter).
   const [selected, setSelected] = useState<string[] | null>(null);
   const [stateFilter, setStateFilter] = useState<string | null>(null);
-  console.log({ selected });
 
   const categoryIds = selected?.join(",") ?? "";
   useEffect(() => setCategoryIds(categoryIds), [categoryIds, setCategoryIds]);

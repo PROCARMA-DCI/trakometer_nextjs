@@ -1,28 +1,31 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Gauge, MessagesSquare, Search, X, Globe, LogOut } from "lucide-react";
-import { usePortal } from "./portal-provider";
-import { browserTimeZone } from "@/lib/trakometer/utils";
-import type { RangeKey } from "@/lib/trakometer/types";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { ThemeToggle } from "@/components/theme-toggle";
+import type { RangeKey } from "@/lib/trakometer/types";
+import { browserTimeZone } from "@/lib/trakometer/utils";
 import { cn } from "@/lib/utils";
+import { Gauge, Globe, LogOut, MessagesSquare, Search, X } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { usePortal } from "./portal-provider";
 
 const RANGES: RangeKey[] = ["ITD", "YTD", "MTD", "30"];
 
 export default function TopBar() {
   const pathname = usePathname() ?? "/";
   const isEmbedded = pathname.startsWith("/test");
-  const localPath = isEmbedded ? pathname.replace(/^\/test/, "") || "/" : pathname;
+  const localPath = isEmbedded
+    ? pathname.replace(/^\/test/, "") || "/"
+    : pathname;
   const isChats = localPath.startsWith("/chats");
   const base = isEmbedded ? "/test" : "";
 
-  const { range, setRange, search, setSearch, online, setOnline, logout } = usePortal();
+  const { range, setRange, search, setSearch, online, setOnline, logout } =
+    usePortal();
   const [q, setQ] = useState(search);
   const [tz, setTz] = useState("");
   useEffect(() => {
@@ -30,7 +33,6 @@ export default function TopBar() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTz(browserTimeZone());
   }, []);
-
 
   return (
     <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-3 border-b bg-background px-4">
@@ -46,17 +48,17 @@ export default function TopBar() {
           href={base || "/"}
           className={cn(
             "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-            !isChats && "bg-background text-foreground shadow-sm"
+            !isChats && "bg-background text-foreground shadow-sm",
           )}
         >
           <Gauge className="size-4" />
-          Overview
+          Dashboard
         </Link>
         <Link
           href={`${base}/chats`}
           className={cn(
             "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-            isChats && "bg-background text-foreground shadow-sm"
+            isChats && "bg-background text-foreground shadow-sm",
           )}
         >
           <MessagesSquare className="size-4" />
@@ -73,7 +75,8 @@ export default function TopBar() {
             onClick={() => setRange(r)}
             className={cn(
               "rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground",
-              range === r && "bg-primary text-primary-foreground hover:text-primary-foreground"
+              range === r &&
+                "bg-primary text-primary-foreground hover:text-primary-foreground",
             )}
           >
             {r === "30" ? "30 DAY" : r}
@@ -123,10 +126,21 @@ export default function TopBar() {
 
       {isChats && (
         <div className="hidden items-center gap-2 rounded-lg border px-2.5 py-1.5 sm:flex">
-          <span className={cn("text-xs font-medium", online ? "text-teal-600 dark:text-teal-400" : "text-muted-foreground")}>
+          <span
+            className={cn(
+              "text-xs font-medium",
+              online
+                ? "text-teal-600 dark:text-teal-400"
+                : "text-muted-foreground",
+            )}
+          >
             {online ? "Online" : "Offline"}
           </span>
-          <Switch checked={online} onCheckedChange={setOnline} aria-label="Toggle online status" />
+          <Switch
+            checked={online}
+            onCheckedChange={setOnline}
+            aria-label="Toggle online status"
+          />
         </div>
       )}
 
