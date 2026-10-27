@@ -88,7 +88,7 @@ export default function OverviewScreen() {
 
   return (
     <div className="flex flex-1 flex-wrap items-start gap-4 overflow-auto p-4 lg:flex-nowrap">
-      <Card className="max-h-screen w-full min-w-0 gap-3 overflow-y-auto py-4 lg:w-auto lg:flex-1">
+      <Card className="w-full min-w-0 gap-3 py-4 lg:sticky lg:top-0 lg:max-h-[calc(100dvh-7rem)] lg:w-auto lg:flex-1 lg:overflow-y-auto">
         <CardHeader className="flex flex-row flex-wrap items-center gap-2 px-4">
           <h2 className="text-sm font-semibold">Dealership contracts</h2>
           <span className="text-xs text-muted-foreground">
@@ -169,7 +169,7 @@ export default function OverviewScreen() {
         </CardContent>
       </Card>
 
-      <div className="flex w-full min-w-0 flex-col gap-4 lg:w-4/12 lg:shrink-0">
+      <div className="flex w-full min-w-0 flex-col gap-4 lg:max-w-[450px] lg:shrink-0">
         <NotificationFeed
           notifications={data?.notifications ?? []}
           users={data?.mobileuser ?? []}

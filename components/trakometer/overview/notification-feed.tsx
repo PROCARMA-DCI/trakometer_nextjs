@@ -54,7 +54,7 @@ export default function NotificationFeed({
   const [tab, setTab] = useState<"notif" | "users">("notif");
 
   return (
-    <Card className="gap-0 overflow-hidden py-0">
+    <Card className="gap-0 overflow-hidden py-0 ">
       <div className="flex items-center gap-3 border-b px-3 py-2">
         <Tabs value={tab} onValueChange={(v) => setTab(v as "notif" | "users")}>
           <TabsList>
