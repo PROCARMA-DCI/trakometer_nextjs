@@ -8,39 +8,38 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { AGENT, CONTACTS } from "@/lib/trakometer/data";
-import type { Message } from "@/lib/trakometer/types";
+import type { ChatThread } from "@/lib/trakometer/types";
 import { cn } from "@/lib/utils";
 import {
   BellRing,
   Building2,
   Clock,
   Maximize2,
-  Phone,
   Send,
   Star,
 } from "lucide-react";
 import { useState } from "react";
 
 interface Props {
-  message: Message;
+  thread: ChatThread;
   starred: boolean;
   onStar: () => void;
   onClose: () => void;
   onOpenThread: () => void;
+  onAppRating: () => void;
   onSend: (body: string, email: boolean) => void;
 }
 
 export default function QuickReplyModal({
-  message: m,
+  thread: t,
   starred,
   onStar,
   onClose,
   onOpenThread,
+  onAppRating,
   onSend,
 }: Props) {
-  const c = CONTACTS[m.contact];
-  const cust = m.from === "cust";
+  const c = t.contact;
   const [draft, setDraft] = useState("");
   const [email, setEmail] = useState(true);
 
@@ -61,17 +60,17 @@ export default function QuickReplyModal({
         <div className="flex gap-2.5">
           <span
             className="flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
-            style={cust ? { background: c.bg, color: c.fg } : undefined}
+            style={{ background: c.bg, color: c.fg }}
           >
-            {cust ? c.initials : AGENT.initials}
+            {c.initials}
           </span>
           <div className="flex-1 rounded-lg border p-3">
             <div className="flex flex-wrap items-center gap-1.5">
               <strong className="text-sm">
-                {cust ? `${c.name} (${c.id})` : AGENT.name}
+                {`${c.name} (${c.id})`}
               </strong>
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                {m.topic || (m.appt ? "Service Plus" : "Chat")}
+                Chat
               </span>
               <div className="flex-1" />
               <Button
@@ -89,13 +88,10 @@ export default function QuickReplyModal({
                 <Building2 className="size-3" /> {c.dealer}
               </span>
               <span className="inline-flex items-center gap-1">
-                <Clock className="size-3" /> {m.date} &middot; {m.time}
+                <Clock className="size-3" /> {t.date} &middot; {t.time}
               </span>
             </div>
-            <div className="mt-2 text-sm">{m.body}</div>
-            <div className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
-              <Phone className="size-3" /> Tel {m.tel || c.phone}
-            </div>
+            <div className="mt-2 whitespace-pre-line text-sm">{t.message}</div>
           </div>
         </div>
 
@@ -125,13 +121,7 @@ export default function QuickReplyModal({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() =>
-                setDraft(
-                  (d) =>
-                    (d ? d + "\n\n" : "") +
-                    "Enjoying the app? Tap here to leave a quick rating.",
-                )
-              }
+              onClick={onAppRating}
             >
               <Star className="size-3.5 text-amber-500" />
               App rating

@@ -35,26 +35,14 @@ Flow: **client component → `fetching()` → same-origin `/api/<resource>/...` 
 - **Proxy `app/api/[...slug]/route.ts`:** first slug segment is the backend resource, so `/api/category/5?x=1` → `<BASE_URL>/category/5?x=1`. It attaches `Authorization: <token>` and forwards the raw body and content-type. A resource served by a different backend goes in `RESOURCE_BACKENDS`. Add a dedicated route file under `app/api/<name>/` only when you need custom server logic; otherwise rely on the catch-all.
 - Backend base URL comes from `config.ts` (`BASE_URL`). Don't hard-code backend URLs in components.
 
-## Chat screen design (current state)
+## Chat portal (current state)
 
-Files: `chat-screen.tsx` (state owner), `conversation-list.tsx`, `thread-panel.tsx`, `composer.tsx`, `message-bubble.tsx`, `appointment-card.tsx`, `quick-reply-modal.tsx`, `service-plus-modal.tsx`, `channel-bar.tsx`.
+One shared screen, one small config per channel.
 
-- **WhatsApp/Messenger-style layout, responsive.** At `md` and up, list and thread sit side by side. Below `md`, only one shows at a time:
-  - list is `hidden` when `selected !== null`
-  - thread shows full screen with a back arrow (`onBack` sets `selected` to null)
-  - `ChannelBar` is hidden on mobile while a chat is open
-  - initial `selected` is `null`, so the desktop right pane shows an empty-state hint
-- **Composer (message-bar style) is shown only while replying** (`replyMsg` set via a message's Reply/Edit button). Row-card click and Eye click open the thread with **no composer footer** and the scroll stays at the **top** (reset on row/mode change). Enter sends, Shift+Enter adds a newline. After sending, `replyMsg` clears and the composer hides.
-- **Row actions** (kept deliberately, user asked to revert to the original behavior):
-  - Reply icon opens `QuickReplyModal`, which has an "Open thread" button
-  - Eye icon calls `onOpen(n, "full")` and opens full history
-  - Row click calls `onOpen(n, "reply")`, which shows only that thread (`m.id === root.id || m.replyOf === root.id`) with `replyMsg = null`
-  - Confirm and decline buttons show on appointment rows
-- `ThreadPanel` header has the "This thread / Full history" toggle (`mode`, `onMode`).
-- `onSend` uses `replyOf = replyMsg ?? undefined`.
-
-## Status / next steps
-
-- Everything type-checks. Not yet visually tested in a browser (mobile width especially).
-- The user said they might want the old **inline reply box under each message** back (instead of only the bottom composer). Ask before changing.
-- `ThreadMode` type (`'reply' | 'full'`) lives in `lib/trakometer/types.ts`.
+- **Add a channel:** create `app/(portal)/<channel>/feed.ts` (a `ChatFeed`: `channel`, `url`, `body({range, search, limit, offset})`, `parse(res) => { rows, total? }`), plus a `layout.tsx` wrapping `<ChatFeedProvider feed={...}>` and a `page.tsx` rendering `<ChatScreen rows channel loading error />` (copy `nguage/`). A channel whose UI really differs gets its own page/components and reuses the helpers.
+- `components/trakometer/chat/`: `chat-feed.tsx` (fetch + refresh + `ChatLayout`), `ChatLayout.tsx` (channel bar, offline banner, `useChatUi` filter/star/flag state), `ChatScreen.tsx` (list + thread + quick reply, thread/reply/rating calls), `conversation-list`, `thread-panel`, `message-bubble`, `composer`, `quick-reply-modal`, `channel-bar`.
+- `lib/trakometer/chat.ts` = common mappers (`toThread`, `matchesSearch`, `sortRows`, `parseThreadMessages`); `chat-api.ts` = shared calls (`specificThreadChats`, reply, app rating).
+- Chat lists are paged by `PAGE_SIZE` (20) with `limit`/`offset`; `total` comes from the API if it reports one, else a full page means "more". Page resets on range/search change.
+- `PortalProvider` only boots the session (`?id=` token → cookie) and shares range/search/online; the dashboard call lives in `overview/use-dashboard.ts`. Any screen reports 401/403 with `usePortal().unauthorized()`.
+- Star/Flag/read marks are client-only (no API). Responsive layout and "composer only while replying" behave as before; ThreadMode is `'reply' | 'full'`.
+- Unverified against the backend: the reply/app-rating URLs in `chat-api.ts`, the `specificThreadChats` response fields (`parseThreadMessages`), and the `user2read` unread rule (`toThread`).

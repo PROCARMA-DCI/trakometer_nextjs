@@ -6,8 +6,9 @@ import type { DashboardData, Dealer } from "@/lib/trakometer/types";
 import { fmtNum } from "@/lib/trakometer/utils";
 import { cn } from "@/lib/utils";
 import { CheckSquare, Square, TrendingDown, TrendingUp, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { usePortal } from "../portal-provider";
+import { useDashboard } from "./use-dashboard";
 import DealershipTable from "./dealership-table";
 import NetworkMap from "./network-map";
 import NotificationFeed from "./notification-feed";
@@ -18,12 +19,7 @@ const num = (v: string | number | undefined) => Number(v) || 0;
 const dirOf = (v: number) => (v > 0 ? "up" : v < 0 ? "down" : "");
 
 export default function OverviewScreen() {
-  const {
-    dashboard: data,
-    dashboardError: error,
-    setCategoryIds,
-    range,
-  } = usePortal();
+  const { range } = usePortal();
   const [categories, setCategories] = useState<Category[]>([]);
   // Chips = API trakoCategory. null = user hasn't touched them yet (none on,
   // sent to the API as "" = no filter).
@@ -31,7 +27,7 @@ export default function OverviewScreen() {
   const [stateFilter, setStateFilter] = useState<string | null>(null);
 
   const categoryIds = selected?.join(",") ?? "";
-  useEffect(() => setCategoryIds(categoryIds), [categoryIds, setCategoryIds]);
+  const { data, error } = useDashboard(categoryIds);
 
   // Chip list comes from the first response so it stays stable.
   if (data && !categories.length && data.trakoCategory.length)

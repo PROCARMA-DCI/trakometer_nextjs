@@ -2,38 +2,37 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AGENT, CHANNELS, CONTACTS } from "@/lib/trakometer/data";
-import type { ChannelId, ChatRow, Message } from "@/lib/trakometer/types";
+import { CHANNELS } from "@/lib/trakometer/data";
+import type { Pager } from "./chat-feed";
+import type { ChannelId, ChatThread } from "@/lib/trakometer/types";
 import { cn } from "@/lib/utils";
 import {
   ArrowUpDown,
-  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Eye,
   Flag,
-  MapPin,
   Monitor,
   Reply,
   Smartphone,
   Star,
-  XCircle,
 } from "lucide-react";
 import type { MouseEvent } from "react";
 
 interface Props {
-  rows: ChatRow[];
-  msgById: Record<string, Message>;
-  selected: number | null;
-  read: Record<number, boolean>;
+  threads: ChatThread[];
+  selected: string | null;
+  read: Record<string, boolean>;
   starred: Record<string, boolean>;
   flagged: Record<string, boolean>;
-  confirmed: Record<string, boolean>;
   channel: ChannelId;
   newestFirst: boolean;
+  loading: boolean;
+  error: string | null;
+  pager?: Pager;
   onToggleSort: () => void;
-  onOpen: (n: number, mode: "reply" | "full") => void;
-  onQuick: (n: number) => void;
-  onConfirm: (n: number) => void;
-  onDecline: (n: number) => void;
+  onOpen: (key: string, mode: "reply" | "full") => void;
+  onQuick: (key: string) => void;
 }
 
 export default function ConversationList(p: Props) {
@@ -48,7 +47,7 @@ export default function ConversationList(p: Props) {
       <div className="flex items-center gap-2 border-b px-3 py-2.5">
         <strong className="text-sm font-semibold">{chName}</strong>
         <span className="text-xs text-muted-foreground">
-          {p.rows.length} messages
+          {p.threads.length} messages
         </span>
         <div className="flex-1" />
         <button
@@ -59,40 +58,30 @@ export default function ConversationList(p: Props) {
           {p.newestFirst ? "Newest first" : "Oldest first"}
         </button>
       </div>
-      <div className="scroll-whatsapp flex-1 overflow-y-auto">
-        {p.rows.map((r) => {
-          const m = p.msgById[r.msg];
-          const c = CONTACTS[m.contact];
-          const cust = m.from === "cust";
-          const unread = !!r.unread && !p.read[r.n];
-          const conf = p.confirmed[r.msg];
+      <div key={p.pager?.page} className="scroll-whatsapp flex-1 overflow-y-auto">
+        {p.threads.map((t) => {
+          const c = t.contact;
+          const unread = t.unread && !p.read[t.key];
           const stop = (fn: () => void) => (e: MouseEvent) => {
             e.stopPropagation();
             fn();
           };
           return (
             <div
-              key={r.n}
+              key={t.key}
               role="button"
               tabIndex={0}
-              // onClick={() => p.onOpen(r.n, "reply")}
+              onClick={() => p.onOpen(t.key, "reply")}
               className={cn(
-                "flex cursor-text gap-2.5 border-b px-3 py-2.5 transition-colors hover:bg-muted/50",
-                p.selected === r.n && "bg-primary/5",
+                "flex gap-2.5 border-b px-3 py-2.5 transition-colors hover:bg-muted/50",
+                p.selected === t.key && "bg-primary/5",
               )}
             >
               <span
                 className="flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-                style={
-                  cust
-                    ? { background: c.bg, color: c.fg }
-                    : {
-                        background: "var(--foreground)",
-                        color: "var(--background)",
-                      }
-                }
+                style={{ background: c.bg, color: c.fg }}
               >
-                {cust ? c.initials : AGENT.initials}
+                {c.initials}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
@@ -105,62 +94,40 @@ export default function ConversationList(p: Props) {
                       unread ? "font-semibold" : "font-medium",
                     )}
                   >
-                    {cust ? c.name : AGENT.name}
+                    {c.name}
                   </span>
-                  <Badge
-                    variant={cust ? "default" : "secondary"}
-                    className="shrink-0 text-[10px]"
-                  >
-                    {cust ? "Customer" : "CES"}
+                  <Badge variant="default" className="shrink-0 text-[10px]">
+                    Customer
                   </Badge>
                 </div>
                 <div className="truncate text-xs text-muted-foreground">
-                  &rarr; {cust ? c.dealer : `${c.name} (${c.id})`}
+                  &rarr; {c.dealer}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5 text-muted-foreground">
-                  {r.device === "mobile" ? (
+                  {t.device === "mobile" ? (
                     <Smartphone className="size-3.5" />
                   ) : (
                     <Monitor className="size-3.5" />
                   )}
-                  {r.g && (
-                    <span className="flex size-4 items-center justify-center rounded-full bg-muted text-[9px] font-bold">
-                      G
-                    </span>
-                  )}
-                  {r.pin && <MapPin className="size-3.5 text-primary" />}
-                  {r.appt && (
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "text-[10px]",
-                        conf
-                          ? "border-teal-300 bg-teal-50 text-teal-700 dark:border-teal-800 dark:bg-teal-950 dark:text-teal-300"
-                          : "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300",
-                      )}
-                    >
-                      {conf ? "Confirmed" : "Appointment"}
-                    </Badge>
-                  )}
-                  {p.starred[r.msg] && (
+                  {p.starred[t.messageId] && (
                     <Star className="size-3.5 fill-amber-400 text-amber-400" />
                   )}
-                  {p.flagged[r.msg] && (
+                  {p.flagged[t.messageId] && (
                     <Flag className="size-3.5 fill-red-500 text-red-500" />
                   )}
                 </div>
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1.5">
                 <div className="text-right text-xs">
-                  <div className="font-semibold">{r.time}</div>
-                  <div className="text-muted-foreground">{r.date}</div>
+                  <div className="font-semibold">{t.time}</div>
+                  <div className="text-muted-foreground">{t.date}</div>
                 </div>
                 <div className="flex items-center gap-1">
                   <Button
                     variant="outline"
                     size="icon-xs"
                     title="Quick reply"
-                    onClick={stop(() => p.onQuick(r.n))}
+                    onClick={stop(() => p.onQuick(t.key))}
                   >
                     <Reply className="size-3.5" />
                   </Button>
@@ -168,43 +135,50 @@ export default function ConversationList(p: Props) {
                     variant="outline"
                     size="icon-xs"
                     title="Open full conversation"
-                    onClick={stop(() => p.onOpen(r.n, "full"))}
+                    onClick={stop(() => p.onOpen(t.key, "full"))}
                   >
                     <Eye className="size-3.5" />
                   </Button>
-                  {r.appt && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="icon-xs"
-                        title="Confirm appointment"
-                        className="text-teal-600 hover:text-teal-700 dark:text-teal-400"
-                        onClick={stop(() => p.onConfirm(r.n))}
-                      >
-                        <CheckCircle2 className="size-3.5" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon-xs"
-                        title="Decline appointment"
-                        className="text-destructive hover:text-destructive"
-                        onClick={stop(() => p.onDecline(r.n))}
-                      >
-                        <XCircle className="size-3.5" />
-                      </Button>
-                    </>
-                  )}
                 </div>
               </div>
             </div>
           );
         })}
-        {!p.rows.length && (
+        {!p.threads.length && (
           <div className="p-8 text-center text-sm text-muted-foreground">
-            Nothing here for this filter.
+            {p.error ?? (p.loading ? "Loading chats…" : "Nothing here for this filter.")}
           </div>
         )}
       </div>
+      {p.pager && (p.pager.page > 0 || p.pager.hasNext) && (
+        <div className="flex items-center gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
+          <span>
+            {p.pager.page * p.pager.pageSize + 1}&ndash;
+            {p.pager.page * p.pager.pageSize + p.threads.length}
+            {p.pager.total !== null && ` of ${p.pager.total}`}
+          </span>
+          <div className="flex-1" />
+          <Button
+            variant="outline"
+            size="icon-xs"
+            title="Previous page"
+            disabled={p.pager.page === 0 || p.loading}
+            onClick={() => p.pager!.onPage(p.pager!.page - 1)}
+          >
+            <ChevronLeft className="size-3.5" />
+          </Button>
+          <span>Page {p.pager.page + 1}</span>
+          <Button
+            variant="outline"
+            size="icon-xs"
+            title="Next page"
+            disabled={!p.pager.hasNext || p.loading}
+            onClick={() => p.pager!.onPage(p.pager!.page + 1)}
+          >
+            <ChevronRight className="size-3.5" />
+          </Button>
+        </div>
+      )}
     </aside>
   );
 }

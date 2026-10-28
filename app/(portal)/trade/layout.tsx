@@ -1,8 +1,8 @@
 "use client";
+import { ChatFeedProvider } from "@/components/trakometer/chat/chat-feed";
 import type { ReactNode } from "react";
+import { tradeFeed } from "./feed";
 
-import { TradeProvider } from "./useTrade";
-
-export default function NguageLayout({ children }: { children: ReactNode }) {
-  return <TradeProvider>{children}</TradeProvider>;
+export default function TradeLayout({ children }: { children: ReactNode }) {
+  return <ChatFeedProvider feed={tradeFeed}>{children}</ChatFeedProvider>;
 }

@@ -1,5 +1,17 @@
-const page = () => {
-  return <div>page</div>;
-};
+"use client";
+import ChatScreen from "@/components/trakometer/chat/ChatScreen";
+import { useChatFeed } from "@/components/trakometer/chat/chat-feed";
+import { tradeFeed } from "./feed";
 
-export default page;
+export default function Page() {
+  const { rows, loading, error, pager } = useChatFeed();
+  return (
+    <ChatScreen
+      rows={rows}
+      channel={tradeFeed.channel}
+      loading={loading}
+      error={error}
+      pager={pager}
+    />
+  );
+}

@@ -1,5 +1,3 @@
-export type Party = "cust" | "agent";
-
 export interface Contact {
   key: string;
   name: string;
@@ -12,36 +10,31 @@ export interface Contact {
   fg: string; // avatar text
 }
 
-export interface Appointment {
-  reqDate: string;
-  reqTime: string;
-  services: string[];
-}
+/** Who wrote a chat message. */
+export type Party = "cust" | "agent";
 
-export interface Message {
+/** One chat message inside a thread, normalised from `specificThreadChats`. */
+export interface ChatMessage {
   id: string;
-  contact: string; // Contact.key
   from: Party;
   date: string;
   time: string;
   body: string;
-  topic?: string; // e.g. "GPS"
-  appt?: Appointment;
-  tel?: string;
-  service?: string;
-  replyOf?: string; // root message id when a reply is added from a thread
 }
 
-export interface ChatRow {
-  n: number;
-  msg: string; // Message.id
+/** Display model of one conversation-list row, built from a `ChatListData` row. */
+export interface ChatThread {
+  /** Unique list key (threadid + message id). */
+  key: string;
+  threadId: string;
+  messageId: string;
+  contractNo: string;
+  contact: Contact;
+  message: string;
+  device: "mobile" | "desktop";
   date: string;
   time: string;
-  device: "mobile" | "desktop";
-  g?: boolean; // Google-sourced
-  pin?: boolean; // location check-in
-  unread?: boolean;
-  appt?: boolean;
+  unread: boolean;
 }
 
 export interface Dealer {
@@ -159,7 +152,8 @@ export interface ChatListData {
   user2Name: string;
   message: string;
   ContractNo: string;
-  timestamp: Date;
+  /** "YYYY-MM-DD HH:mm:ss" */
+  timestamp: string;
   user1read: string;
   user2read: string;
   device_type: string;

@@ -1,25 +1,22 @@
 "use client";
 
-import { Flag, Star, Trash2, Pencil, Reply, Phone, Wrench } from "lucide-react";
+import { Flag, Star, Reply } from "lucide-react";
 import { AGENT } from "@/lib/trakometer/data";
 import { cn } from "@/lib/utils";
-import type { Contact, Message } from "@/lib/trakometer/types";
+import type { ChatMessage, Contact } from "@/lib/trakometer/types";
 import { Button } from "@/components/ui/button";
 
 interface Props {
-  m: Message;
+  m: ChatMessage;
   contact: Contact;
   starred: boolean;
   flagged: boolean;
-  hideTools: boolean;
   onStar: () => void;
   onFlag: () => void;
   onReply: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
 }
 
-export default function MessageBubble({ m, contact: c, starred, flagged, hideTools, onStar, onFlag, onReply, onEdit, onDelete }: Props) {
+export default function MessageBubble({ m, contact: c, starred, flagged, onStar, onFlag, onReply }: Props) {
   const cust = m.from === "cust";
   return (
     <div className={cn("flex gap-2.5", !cust && "flex-row-reverse")}>
@@ -45,34 +42,12 @@ export default function MessageBubble({ m, contact: c, starred, flagged, hideToo
           </Button>
         </div>
         <div className="whitespace-pre-line text-sm">{m.body}</div>
-        {m.tel && (
-          <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <Phone className="size-3" /> Tel {m.tel}
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <Wrench className="size-3" /> Service {m.service}
-            </span>
-          </div>
-        )}
-        {!hideTools && (
-          <div className="flex items-center justify-end gap-1.5 pt-1">
-            {!cust && (
-              <>
-                <Button variant="ghost" size="icon-xs" title="Delete" onClick={onDelete} className="text-destructive hover:text-destructive">
-                  <Trash2 className="size-3.5" />
-                </Button>
-                <Button variant="ghost" size="icon-xs" title="Edit" onClick={onEdit} className="text-teal-600 dark:text-teal-400">
-                  <Pencil className="size-3.5" />
-                </Button>
-              </>
-            )}
-            <Button variant="secondary" size="xs" onClick={onReply}>
-              <Reply className="size-3.5" />
-              Reply
-            </Button>
-          </div>
-        )}
+        <div className="flex items-center justify-end gap-1.5 pt-1">
+          <Button variant="secondary" size="xs" onClick={onReply}>
+            <Reply className="size-3.5" />
+            Reply
+          </Button>
+        </div>
       </div>
     </div>
   );

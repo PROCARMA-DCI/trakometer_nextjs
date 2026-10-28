@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { fetching } from "@/lib/api/client";
-import type { DashboardData, RangeKey } from "@/lib/trakometer/types";
+import type { RangeKey } from "@/lib/trakometer/types";
 import { Gauge, Loader2, ShieldAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -16,11 +16,10 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-const DASHBOARD_URL = "/api/react/Trakometer/dashboardData";
 // The host app embeds us as `?id=<token>`.
 const TOKEN_PARAM = "id";
 
-/** checking = saving token / validating · ready = token valid · denied = missing/invalid token */
+/** checking = saving the `?id=` token · ready = session set up · denied = missing/invalid token */
 type AuthStatus = "checking" | "ready" | "denied";
 
 interface PortalCtx {
@@ -28,14 +27,16 @@ interface PortalCtx {
   setRange: (r: RangeKey) => void;
   search: string;
   setSearch: (s: string) => void;
+  /** `search`, debounced — use this for anything sent to the server. */
+  searchTerm: string;
   online: boolean;
   setOnline: (o: boolean) => void;
   showToast: (t: string) => void;
-  /** Latest dashboard payload (also what validates the token). */
-  dashboard: DashboardData | null;
-  dashboardError: string | null;
-  /** Comma-separated TrakoCategoryIDs sent to the dashboard call ("" = no filter). */
-  setCategoryIds: (ids: string) => void;
+  /**
+   * Call when any backend request answers 401/403: stale cookie → login page,
+   * bad `?id=` token → "Session not valid" screen.
+   */
+  unauthorized: (message?: string) => void;
   logout: () => Promise<void>;
 }
 
@@ -48,22 +49,18 @@ export function usePortal() {
 }
 
 /**
- * One place that boots the portal:
+ * Wraps every portal page and boots the session:
  *  1. `?id=<token>` in the URL → saved in an httpOnly cookie, then removed from the URL
- *  2. dashboard call (re-run on range / search / category change) — a 401 or failure
- *     means the token is invalid, so the portal is not shown
- *  3. children render only once the token is valid
+ *  2. children render once that is done; each screen calls its own API and reports
+ *     a 401/403 through `unauthorized()` (the dashboard call lives in the overview)
  */
 export function PortalProvider({ children }: { children: ReactNode }) {
   const [range, setRange] = useState<RangeKey>("30");
   const [search, setSearch] = useState("");
   const [online, setOnline] = useState(true);
-  const [categoryIds, setCategoryIds] = useState("");
 
-  const [sessionReady, setSessionReady] = useState(false);
   const [status, setStatus] = useState<AuthStatus>("checking");
-  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
-  const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [deniedMessage, setDeniedMessage] = useState<string | null>(null);
   const router = useRouter();
   const showToast = (msg: string) => toast.success(msg);
 
@@ -97,65 +94,31 @@ export function PortalProvider({ children }: { children: ReactNode }) {
           return;
         }
       }
-      // No `id` → rely on the cookie (proxy.ts already ensured one exists); the dashboard call validates it.
-      setSessionReady(true);
-    })();
-  }, []);
-
-  // 2. Dashboard call = token validation.
-  useEffect(() => {
-    if (!sessionReady) return;
-    let cancelled = false;
-    (async () => {
-      const res = await fetching<DashboardData>({
-        url: DASHBOARD_URL,
-        method: "POST",
-        body: {
-          FixedDateParaMater: range,
-          TrakoCategoryID: categoryIds,
-          DealerTitle: searchTerm,
-        },
-        isFormdata: true,
-        showLoader: status === "ready", // first call shows the boot screen instead
-      });
-      if (cancelled) return;
-      if (res.status === 401 || res.status === 403) {
-        setDashboard(null);
-        // Stale/invalid cookie from a normal visit → sign in again; a bad `?id=` token shows the error screen.
-        if (!usedUrlToken.current) {
-          router.replace("/login");
-          return;
-        }
-        setStatus("denied");
-        return;
-      }
-      if (!res.ok || !res.success) {
-        // Token is fine (not a 401) but the data call failed — keep the portal up.
-        setDashboardError(res.message ?? "Could not load dashboard data.");
-        setStatus((s) => (s === "checking" ? "denied" : s));
-        return;
-      }
-      setDashboardError(null);
-      setDashboard(res);
-      setStatus("ready");
-
-      // Token proved valid → keep it out of the address bar / history.
-      const url = new URL(window.location.href);
-      if (url.searchParams.has(TOKEN_PARAM)) {
+      // No `id` → rely on the cookie (proxy.ts already ensured one exists).
+      if (token) {
+        // Token is saved → keep it out of the address bar / history.
         url.searchParams.delete(TOKEN_PARAM);
         window.history.replaceState(null, "", url.pathname + url.search + url.hash);
       }
+      setStatus("ready");
     })();
-    return () => {
-      cancelled = true;
-    };
-    // `status` only picks the loader style; it must not retrigger the call.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionReady, range, searchTerm, categoryIds]);
+  }, []);
+
+  const unauthorized = useCallback(
+    (message?: string) => {
+      // Stale/invalid cookie from a normal visit → sign in again; a bad `?id=` token shows the error screen.
+      if (!usedUrlToken.current) {
+        router.replace("/login");
+        return;
+      }
+      setDeniedMessage(message ?? null);
+      setStatus("denied");
+    },
+    [router],
+  );
 
   const logout = useCallback(async () => {
     await fetching({ url: "/api/auth/logout", showLoader: false });
-    setDashboard(null);
     setStatus("denied");
   }, []);
 
@@ -173,7 +136,7 @@ export function PortalProvider({ children }: { children: ReactNode }) {
             <ShieldAlert className="size-8 text-destructive" />
             <h1 className="text-lg font-semibold">Session not valid</h1>
             <p className="text-sm text-muted-foreground">
-              {dashboardError ??
+              {deniedMessage ??
                 "Your access token is missing or has expired. Please reopen Trakometer from the main application."}
             </p>
             <Button variant="outline" onClick={() => router.push("/login")}>
@@ -192,12 +155,11 @@ export function PortalProvider({ children }: { children: ReactNode }) {
         setRange,
         search,
         setSearch,
+        searchTerm,
         online,
         setOnline,
         showToast,
-        dashboard,
-        dashboardError,
-        setCategoryIds,
+        unauthorized,
         logout,
       }}
     >

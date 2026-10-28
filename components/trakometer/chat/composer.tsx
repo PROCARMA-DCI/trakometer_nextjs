@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Reply, Star, MessageSquareText, CalendarPlus, Send, X } from "lucide-react";
+import { Reply, Star, MessageSquareText, Send, X } from "lucide-react";
 import { CANNED } from "@/lib/trakometer/data";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -9,14 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface Props {
   replyTitle: string | null;
-  initial?: string;
   onCancelReply: () => void;
-  onSchedule: () => void;
-  onSend: (body: string, via: string) => void;
+  onAppRating: () => void;
+  onSend: (body: string, via: { sms: boolean; email: boolean }) => void;
 }
 
-export default function Composer({ replyTitle, initial = "", onCancelReply, onSchedule, onSend }: Props) {
-  const [draft, setDraft] = useState(initial);
+export default function Composer({ replyTitle, onCancelReply, onAppRating, onSend }: Props) {
+  const [draft, setDraft] = useState("");
   const [sms, setSms] = useState(false);
   const [email, setEmail] = useState(true);
   const [canned, setCanned] = useState(false);
@@ -24,13 +23,12 @@ export default function Composer({ replyTitle, initial = "", onCancelReply, onSc
   const append = (t: string) => setDraft((d) => (d ? d + "\n\n" : "") + t);
 
   useEffect(() => {
-    if (replyTitle || initial) ref.current?.focus();
-  }, [replyTitle, initial]);
+    if (replyTitle) ref.current?.focus();
+  }, [replyTitle]);
 
   function send() {
     if (!draft.trim()) return;
-    const via = [sms && "SMS", email && "email"].filter(Boolean).join(" + ") || "app";
-    onSend(draft, "Reply sent via " + via);
+    onSend(draft.trim(), { sms, email });
     setDraft("");
   }
 
@@ -103,15 +101,11 @@ export default function Composer({ replyTitle, initial = "", onCancelReply, onSc
           type="button"
           variant="ghost"
           size="xs"
-          title="App rating"
-          onClick={() => append("Enjoying the app? Tap here to leave a quick rating.")}
+          title="Send app rating request"
+          onClick={onAppRating}
         >
           <Star className="size-3.5 text-amber-500" />
           <span className="hidden sm:inline">App rating</span>
-        </Button>
-        <Button type="button" variant="ghost" size="xs" title="Create schedule" onClick={onSchedule}>
-          <CalendarPlus className="size-3.5" />
-          <span className="hidden sm:inline">Schedule</span>
         </Button>
         <div className="flex-1" />
         <span className="text-xs text-muted-foreground">Via</span>

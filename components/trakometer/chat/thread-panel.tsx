@@ -10,45 +10,39 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
-import { CONTACTS, MESSAGES } from "@/lib/trakometer/data";
+import { AGENT } from "@/lib/trakometer/data";
 import { cn } from "@/lib/utils";
-import type { ChatRow, Message, ThreadMode } from "@/lib/trakometer/types";
+import type { ChatMessage, ChatThread, ThreadMode } from "@/lib/trakometer/types";
 import MessageBubble from "./message-bubble";
-import AppointmentCard from "./appointment-card";
 import Composer from "./composer";
 
 type Flags = Record<string, boolean>;
 interface Props {
-  row: ChatRow | null;
+  thread: ChatThread | null;
+  messages: ChatMessage[];
+  loading: boolean;
   mode: ThreadMode;
   onMode: (m: ThreadMode) => void;
   onBack: () => void;
-  msgById: Record<string, Message>;
-  extra: Message[];
-  deleted: Flags;
   starred: Flags;
   flagged: Flags;
-  confirmed: Flags;
   replyMsg: string | null;
-  draftSeed: string;
   onStar: (id: string) => void;
   onFlag: (id: string) => void;
   onReply: (id: string) => void;
-  onEdit: (id: string, body: string) => void;
-  onDelete: (id: string) => void;
   onCancelReply: () => void;
-  onSend: (contact: string, body: string, via: string) => void;
-  onOpenSchedule: () => void;
+  onSend: (body: string, via: { sms: boolean; email: boolean }) => void;
+  onAppRating: () => void;
 }
 
 export default function ThreadPanel(p: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const rowN = p.row?.n;
+  const key = p.thread?.key;
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 });
-  }, [rowN, p.mode]);
+  }, [key, p.mode]);
 
-  if (!p.row) {
+  if (!p.thread) {
     return (
       <section className="hidden flex-1 items-center justify-center p-8 md:flex">
         <div className="flex max-w-sm flex-col items-center gap-3 text-center">
@@ -65,16 +59,9 @@ export default function ThreadPanel(p: Props) {
       </section>
     );
   }
-  const root = p.msgById[p.row.msg];
-  const c = CONTACTS[root.contact];
-  let list = MESSAGES.filter((m) => m.contact === root.contact)
-    .concat(p.extra.filter((m) => m.contact === root.contact))
-    .filter((m) => !p.deleted[m.id]);
-  if (p.mode === "reply")
-    list = list.filter((m) => m.id === root.id || m.replyOf === root.id);
-  const target = p.replyMsg
-    ? p.msgById[p.replyMsg] || p.extra.find((e) => e.id === p.replyMsg)
-    : null;
+  const c = p.thread.contact;
+  const list = p.messages;
+  const target = p.replyMsg ? list.find((m) => m.id === p.replyMsg) : null;
 
   return (
     <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -103,12 +90,16 @@ export default function ThreadPanel(p: Props) {
             <span className="inline-flex items-center gap-1">
               <Store className="size-3" /> {c.dealer}
             </span>
-            <span className="hidden items-center gap-1 sm:inline-flex">
-              <Phone className="size-3" /> {c.phone}
-            </span>
-            <span className="hidden items-center gap-1 lg:inline-flex">
-              <Mail className="size-3" /> {c.email}
-            </span>
+            {c.phone && (
+              <span className="hidden items-center gap-1 sm:inline-flex">
+                <Phone className="size-3" /> {c.phone}
+              </span>
+            )}
+            {c.email && (
+              <span className="hidden items-center gap-1 lg:inline-flex">
+                <Mail className="size-3" /> {c.email}
+              </span>
+            )}
           </div>
         </div>
         <div className="flex-1" />
@@ -146,49 +137,31 @@ export default function ThreadPanel(p: Props) {
             ? "Replying to one thread · open Full history to see every message"
             : `Full conversation history · ${list.length} messages`}
         </div>
-        {list.map((m) =>
-          m.appt ? (
-            <AppointmentCard
-              key={m.id}
-              m={m}
-              contact={c}
-              starred={!!p.starred[m.id]}
-              flagged={!!p.flagged[m.id]}
-              confirmed={!!p.confirmed[m.id]}
-              onStar={() => p.onStar(m.id)}
-              onFlag={() => p.onFlag(m.id)}
-              onReply={() => p.onReply(m.id)}
-              onConfirm={p.onOpenSchedule}
-            />
-          ) : (
-            <MessageBubble
-              key={m.id}
-              m={m}
-              contact={c}
-              starred={!!p.starred[m.id]}
-              flagged={!!p.flagged[m.id]}
-              hideTools={false}
-              onStar={() => p.onStar(m.id)}
-              onFlag={() => p.onFlag(m.id)}
-              onReply={() => p.onReply(m.id)}
-              onEdit={() => p.onEdit(m.id, m.body)}
-              onDelete={() => p.onDelete(m.id)}
-            />
-          ),
+        {!list.length && (
+          <div className="py-8 text-center text-sm text-muted-foreground">
+            {p.loading ? "Loading messages…" : "No messages found."}
+          </div>
         )}
+        {list.map((m) => (
+          <MessageBubble
+            key={m.id}
+            m={m}
+            contact={c}
+            starred={!!p.starred[m.id]}
+            flagged={!!p.flagged[m.id]}
+            onStar={() => p.onStar(m.id)}
+            onFlag={() => p.onFlag(m.id)}
+            onReply={() => p.onReply(m.id)}
+          />
+        ))}
       </div>
       {target && (
         <Composer
-          key={p.row.n + ":" + (p.replyMsg ?? "") + p.draftSeed}
-          replyTitle={
-            target
-              ? `Replying to ${target.from === "cust" ? c.name : "AIZAH AWAIS"} · ${target.time}`
-              : null
-          }
-          initial={p.draftSeed}
+          key={p.thread.key + ":" + target.id}
+          replyTitle={`Replying to ${target.from === "cust" ? c.name : AGENT.name} · ${target.time}`}
           onCancelReply={p.onCancelReply}
-          onSchedule={p.onOpenSchedule}
-          onSend={(body, via) => p.onSend(root.contact, body, via)}
+          onAppRating={p.onAppRating}
+          onSend={p.onSend}
         />
       )}
     </section>

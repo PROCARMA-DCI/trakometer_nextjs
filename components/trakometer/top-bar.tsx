@@ -4,6 +4,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { CHANNELS } from "@/lib/trakometer/data";
 import type { RangeKey } from "@/lib/trakometer/types";
 import { browserTimeZone } from "@/lib/trakometer/utils";
 import { cn } from "@/lib/utils";
@@ -21,7 +22,8 @@ export default function TopBar() {
   const localPath = isEmbedded
     ? pathname.replace(/^\/test/, "") || "/"
     : pathname;
-  const isChats = localPath.startsWith("/chats");
+  // Any chat channel (/nguage, /trade, …) counts as the chat portal.
+  const isChats = CHANNELS.some((c) => localPath.startsWith(c.link));
   const base = isEmbedded ? "/test" : "";
 
   const { range, setRange, search, setSearch, online, setOnline, logout } =
@@ -55,7 +57,7 @@ export default function TopBar() {
           Dashboard
         </Link>
         <Link
-          href={`${base}/chats`}
+          href={`${base}${CHANNELS[0].link}`}
           className={cn(
             "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
             isChats && "bg-background text-foreground shadow-sm",

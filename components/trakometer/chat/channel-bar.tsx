@@ -46,7 +46,6 @@ const ALERTS: {
 
 interface Props {
   channel: ChannelId;
-  onChannel: (c: ChannelId) => void;
   push: boolean;
   onPush: () => void;
   alert: AlertFilter;
@@ -58,7 +57,6 @@ interface Props {
 
 export default function ChannelBar({
   channel,
-  onChannel,
   push,
   onPush,
   alert,
@@ -76,7 +74,6 @@ export default function ChannelBar({
           <button
             key={c.id}
             onClick={() => {
-              onChannel(c.id);
               router.push(c.link);
             }}
             className={cn(

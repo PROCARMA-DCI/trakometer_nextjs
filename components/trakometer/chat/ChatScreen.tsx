@@ -1,119 +1,182 @@
-import { ChannelId, ChatListData } from "@/lib/trakometer/types";
+"use client";
+
+import { usePortal } from "@/components/trakometer/portal-provider";
+import {
+  loadThreadMessages,
+  sendAppRating,
+  sendThreadReply,
+} from "@/lib/trakometer/chat-api";
+import { matchesSearch, sortRows, toThread } from "@/lib/trakometer/chat";
+import type {
+  ChannelId,
+  ChatListData,
+  ChatMessage,
+  ThreadMode,
+} from "@/lib/trakometer/types";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import type { Pager } from "./chat-feed";
+import { useChatUi } from "./ChatLayout";
 import ConversationList from "./conversation-list";
 import QuickReplyModal from "./quick-reply-modal";
-import ServicePlusModal from "./service-plus-modal";
 import ThreadPanel from "./thread-panel";
 
 interface Props {
-  rows: ChatListData;
+  rows: ChatListData[];
   channel: ChannelId;
+  loading?: boolean;
+  error?: string | null;
+  pager?: Pager;
 }
-const ChatScreen = ({ rows, channel }: Props) => {
-  return (
-    <div>
-      <div className="flex min-h-0 flex-1 overflow-hidden">
-        <ConversationList
-          rows={rows}
-          msgById={msgById}
-          selected={selected}
-          read={read}
-          starred={starred}
-          flagged={flagged}
-          confirmed={confirmed}
-          channel={channel}
-          newestFirst={newestFirst}
-          onToggleSort={() => setNewestFirst(!newestFirst)}
-          onOpen={openRow}
-          onQuick={(n) => {
-            setQuick(n);
-            setRead((r) => ({ ...r, [n]: true }));
-          }}
-          onConfirm={(n) => {
-            openRow(n, "reply");
-            setServiceModal(true);
-          }}
-          onDecline={() => showToast("Appointment request declined")}
-        />
-        <ThreadPanel
-          row={selRow}
-          mode={mode}
-          onMode={(m) => {
-            setMode(m);
-            setReplyMsg(null);
-          }}
-          onBack={() => setSelected(null)}
-          msgById={msgById}
-          extra={extra}
-          deleted={deleted}
-          starred={starred}
-          flagged={flagged}
-          confirmed={confirmed}
-          replyMsg={replyMsg}
-          draftSeed={draftSeed}
-          onStar={toggle(setStarred)}
-          onFlag={toggle(setFlagged)}
-          onReply={(id) => {
-            setReplyMsg(id);
-            setDraftSeed("");
-          }}
-          onEdit={(id, body) => {
-            setReplyMsg(id);
-            setDraftSeed(body);
-          }}
-          onDelete={(id) => {
-            setDeleted((d) => ({ ...d, [id]: true }));
-            showToast("Message deleted");
-          }}
-          onCancelReply={() => setReplyMsg(null)}
-          onSend={(contact, body, via) => {
-            addReply(contact, body, replyMsg ?? undefined, via);
-            setReplyMsg(null);
-          }}
-          onOpenSchedule={() => setServiceModal(true)}
-        />
-      </div>
 
-      {quickRow && (
+const ChatScreen = ({
+  rows,
+  channel,
+  loading = false,
+  error = null,
+  pager,
+}: Props) => {
+  const { search, showToast } = usePortal();
+  const { alert, starred, flagged, toggleStar, toggleFlag, setThreadOpen } =
+    useChatUi();
+  const [newestFirst, setNewestFirst] = useState(true);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [mode, setMode] = useState<ThreadMode>("reply");
+  const [replyMsg, setReplyMsg] = useState<string | null>(null);
+  const [quick, setQuick] = useState<string | null>(null);
+  const [read, setRead] = useState<Record<string, boolean>>({});
+  const [loaded, setLoaded] = useState<{ id: string; messages: ChatMessage[] } | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const all = useMemo(() => sortRows(rows, newestFirst).map(toThread), [rows, newestFirst]);
+  const threads = useMemo(
+    () =>
+      all.filter((t) => {
+        if (alert === "star" && !starred[t.messageId]) return false;
+        if (alert === "new" && !(t.unread && !read[t.key])) return false;
+        if (alert === "flag" && !flagged[t.messageId]) return false;
+        return matchesSearch(t, search);
+      }),
+    [all, alert, starred, flagged, read, search],
+  );
+
+  const selThread = all.find((t) => t.key === selected) ?? null;
+  const quickThread = all.find((t) => t.key === quick) ?? null;
+
+  // Mobile: hide the channel bar while a chat is open.
+  useEffect(() => {
+    setThreadOpen(selThread !== null);
+    return () => setThreadOpen(false);
+  }, [selThread, setThreadOpen]);
+
+  // Messages shown belong to the open thread + mode; until they arrive we are "loading".
+  const loadId = selThread ? `${selThread.key}|${mode}` : null;
+  const messages = loaded?.id === loadId ? loaded.messages : [];
+  const messagesLoading = loadId !== null && loaded?.id !== loadId;
+
+  // Load the opened thread (again after a reply, or when the mode switches).
+  useEffect(() => {
+    if (!selThread || !loadId) return;
+    let cancelled = false;
+    loadThreadMessages(selThread, mode).then((r) => {
+      if (cancelled) return;
+      if (!r.ok) {
+        setLoaded({ id: loadId, messages: [] });
+        return void toast.error(r.error ?? "Could not load the conversation.");
+      }
+      setLoaded({ id: loadId, messages: r.messages });
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Re-run on the thread's key, not on the row object.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadId, reloadKey]);
+
+  const openRow = useCallback((key: string, m: ThreadMode) => {
+    setSelected(key);
+    setMode(m);
+    setReplyMsg(null);
+    setRead((r) => ({ ...r, [key]: true }));
+  }, []);
+
+  async function reply(
+    replyToId: string,
+    body: string,
+    via: { sms: boolean; email: boolean },
+  ) {
+    const r = await sendThreadReply({ message: body, replyToId, ...via });
+    if (!r.ok) return toast.error(r.error ?? "Could not send the reply.");
+    showToast(
+      "Reply sent via " +
+        ([via.sms && "SMS", via.email && "email"].filter(Boolean).join(" + ") ||
+          "app"),
+    );
+    setReplyMsg(null);
+    setReloadKey((k) => k + 1);
+  }
+
+  async function appRating(contractNo: string) {
+    const r = await sendAppRating(contractNo);
+    if (!r.ok) return toast.error(r.error ?? "Could not send the app rating.");
+    showToast("App rating request sent");
+  }
+
+  return (
+    <div className="flex min-h-0 flex-1 overflow-hidden">
+      <ConversationList
+        threads={threads}
+        selected={selected}
+        read={read}
+        starred={starred}
+        flagged={flagged}
+        channel={channel}
+        newestFirst={newestFirst}
+        loading={loading}
+        error={error}
+        pager={pager}
+        onToggleSort={() => setNewestFirst(!newestFirst)}
+        onOpen={openRow}
+        onQuick={(key) => {
+          setQuick(key);
+          setRead((r) => ({ ...r, [key]: true }));
+        }}
+      />
+      <ThreadPanel
+        thread={selThread}
+        messages={messages}
+        loading={messagesLoading}
+        mode={mode}
+        onMode={(m) => {
+          setMode(m);
+          setReplyMsg(null);
+        }}
+        onBack={() => setSelected(null)}
+        starred={starred}
+        flagged={flagged}
+        replyMsg={replyMsg}
+        onStar={toggleStar}
+        onFlag={toggleFlag}
+        onReply={setReplyMsg}
+        onCancelReply={() => setReplyMsg(null)}
+        onSend={(body, via) => replyMsg && reply(replyMsg, body, via)}
+        onAppRating={() => selThread && appRating(selThread.contractNo)}
+      />
+
+      {quickThread && (
         <QuickReplyModal
-          message={msgById[quickRow.msg]}
-          starred={!!starred[quickRow.msg]}
-          onStar={() => toggle(setStarred)(quickRow.msg)}
+          thread={quickThread}
+          starred={!!starred[quickThread.messageId]}
+          onStar={() => toggleStar(quickThread.messageId)}
           onClose={() => setQuick(null)}
           onOpenThread={() => {
             setQuick(null);
-            openRow(quickRow.n, "reply");
+            openRow(quickThread.key, "reply");
           }}
-          onSend={(body, email) => {
-            const m = msgById[quickRow.msg];
-            addReply(
-              m.contact,
-              body,
-              quickRow.msg,
-              "Reply sent to " +
-                CONTACTS[m.contact].name +
-                (email ? " via email and app" : " via app"),
-            );
+          onAppRating={() => appRating(quickThread.contractNo)}
+          onSend={async (body, email) => {
+            await reply(quickThread.messageId, body, { sms: false, email });
             setQuick(null);
-          }}
-        />
-      )}
-
-      {serviceModal && selRow && (
-        <ServicePlusModal
-          message={msgById[selRow.msg]}
-          onClose={() => setServiceModal(false)}
-          onSubmit={(body) => {
-            const m = msgById[selRow.msg];
-            setConfirmed((c) => ({ ...c, [m.id]: true }));
-            addReply(
-              m.contact,
-              body ||
-                "Your appointment is confirmed for Friday, Sep 25 2026 at 01:00 PM. See you then!",
-              m.id,
-              "Appointment confirmed and customer notified",
-            );
-            setServiceModal(false);
-            setReplyMsg(null);
           }}
         />
       )}
