@@ -18,6 +18,7 @@ import {
   RefreshCw,
   Star,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const CHANNEL_ICONS: Record<
   ChannelId,
@@ -50,7 +51,7 @@ interface Props {
   onPush: () => void;
   alert: AlertFilter;
   onAlert: (a: Exclude<AlertFilter, null>) => void;
-  counts: Record<"star" | "new" | "flag", number>;
+  // counts: Record<"star" | "new" | "flag", number>;
   spinning: boolean;
   onRefresh: () => void;
 }
@@ -62,10 +63,11 @@ export default function ChannelBar({
   onPush,
   alert,
   onAlert,
-  counts,
+  // counts,
   spinning,
   onRefresh,
 }: Props) {
+  const router = useRouter();
   return (
     <div className="flex flex-wrap items-center gap-1.5 border-b bg-background px-3 py-2">
       {CHANNELS.map((c) => {
@@ -73,7 +75,10 @@ export default function ChannelBar({
         return (
           <button
             key={c.id}
-            onClick={() => onChannel(c.id)}
+            onClick={() => {
+              onChannel(c.id);
+              router.push(c.link);
+            }}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-medium transition-colors",
               channel === c.id
@@ -132,7 +137,7 @@ export default function ChannelBar({
               <Icon className={cn("size-3.5", a.className)} />
               {a.label}
               <span className="font-mono text-muted-foreground">
-                {counts[a.id]}
+                {/* {counts[a.id]} */}
               </span>
             </button>
           );

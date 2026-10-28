@@ -150,3 +150,21 @@ export interface DashboardData {
   mobileuser: DashboardMobileUser[];
   notificationsbystate: DashboardStateNotification[];
 }
+
+export interface ChatListData {
+  threadid: string;
+  message_id: string;
+  User1Image: string;
+  user1Name: string;
+  user2Name: string;
+  message: string;
+  ContractNo: string;
+  timestamp: Date;
+  user1read: string;
+  user2read: string;
+  device_type: string;
+}
+export interface Pagination {
+  limit: number;
+  offset: number;
+}

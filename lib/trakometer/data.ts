@@ -440,14 +440,19 @@ export const CANNED = [
   },
 ];
 
-export const CHANNELS: { id: ChannelId; label: string; count?: number }[] = [
-  { id: "ngauge", label: "N-Gauge" },
-  { id: "trade", label: "Value My Trade" },
-  { id: "service", label: "Service Plus" },
+export const CHANNELS: {
+  id: ChannelId;
+  label: string;
+  count?: number;
+  link: string;
+}[] = [
+  { id: "ngauge", label: "N-Gauge", link: "/nguage" },
+  { id: "trade", label: "Value My Trade", link: "/trade" },
+  { id: "service", label: "Service Plus", link: "/service" },
 
-  { id: "anon", label: "Anonymous", count: 0 },
-  { id: "kanopi", label: "Kanopi", count: 66 },
-  { id: "notif", label: "Notifications", count: 3 },
+  { id: "anon", label: "Anonymous", count: 0, link: "/anon" },
+  { id: "kanopi", label: "Kanopi", count: 66, link: "/kanopi" },
+  { id: "notif", label: "Notifications", count: 3, link: "/notif" },
 ];
 
 export const AGENT = { name: "AIZAH AWAIS", initials: "AA" };
