@@ -1,7 +1,7 @@
 "use client";
 
 import { usePortal } from "@/components/trakometer/portal-provider";
-import { matchesSearch, sortRows, toThread } from "@/lib/trakometer/chat";
+import { sortRows, toThread } from "@/lib/trakometer/chat";
 import {
   loadThreadMessages,
   sendAppRating,
@@ -54,16 +54,6 @@ const ChatScreen = ({
   const all = useMemo(
     () => sortRows(rows, newestFirst).map(toThread),
     [rows, newestFirst],
-  );
-  const threads = useMemo(
-    () =>
-      all.filter((t) => {
-        if (alert === "star" && !starred[t.messageId]) return false;
-        if (alert === "new" && !(t.unread && !read[t.key])) return false;
-        if (alert === "flag" && !flagged[t.messageId]) return false;
-        return matchesSearch(t, search);
-      }),
-    [all, alert, starred, flagged, read, search],
   );
 
   const selThread = all.find((t) => t.key === selected) ?? null;
