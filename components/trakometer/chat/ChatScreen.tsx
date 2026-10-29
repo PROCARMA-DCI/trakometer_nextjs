@@ -1,12 +1,12 @@
 "use client";
 
 import { usePortal } from "@/components/trakometer/portal-provider";
+import { matchesSearch, sortRows, toThread } from "@/lib/trakometer/chat";
 import {
   loadThreadMessages,
   sendAppRating,
   sendThreadReply,
 } from "@/lib/trakometer/chat-api";
-import { matchesSearch, sortRows, toThread } from "@/lib/trakometer/chat";
 import type {
   ChannelId,
   ChatListData,
@@ -45,10 +45,16 @@ const ChatScreen = ({
   const [replyMsg, setReplyMsg] = useState<string | null>(null);
   const [quick, setQuick] = useState<string | null>(null);
   const [read, setRead] = useState<Record<string, boolean>>({});
-  const [loaded, setLoaded] = useState<{ id: string; messages: ChatMessage[] } | null>(null);
+  const [loaded, setLoaded] = useState<{
+    id: string;
+    messages: ChatMessage[];
+  } | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const all = useMemo(() => sortRows(rows, newestFirst).map(toThread), [rows, newestFirst]);
+  const all = useMemo(
+    () => sortRows(rows, newestFirst).map(toThread),
+    [rows, newestFirst],
+  );
   const threads = useMemo(
     () =>
       all.filter((t) => {
@@ -125,11 +131,8 @@ const ChatScreen = ({
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
       <ConversationList
-        threads={threads}
+        rows={rows}
         selected={selected}
-        read={read}
-        starred={starred}
-        flagged={flagged}
         channel={channel}
         newestFirst={newestFirst}
         loading={loading}

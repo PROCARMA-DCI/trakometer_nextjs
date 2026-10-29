@@ -144,12 +144,19 @@ export interface DashboardData {
   notificationsbystate: DashboardStateNotification[];
 }
 
+export interface ChatListIcon {
+  device: "desktop" | "mobile";
+  gps_connected: boolean;
+  guest: boolean;
+  read_status: "grey_circle" | "green_circle";
+  service_video: boolean;
+}
 export interface ChatListData {
   threadid: string;
   message_id: string;
   User1Image: string;
   user1Name: string;
-  user2Name: string;
+  User2Name: string;
   message: string;
   ContractNo: string;
   /** "YYYY-MM-DD HH:mm:ss" */
@@ -157,6 +164,8 @@ export interface ChatListData {
   user1read: string;
   user2read: string;
   device_type: string;
+  notification_date: string;
+  icons: ChatListIcon;
 }
 export interface Pagination {
   limit: number;
