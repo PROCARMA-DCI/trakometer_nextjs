@@ -2,16 +2,17 @@
 // Channel-specific list calls live next to their page (app/(portal)/<channel>/feed.ts).
 
 import { fetching } from "@/lib/api/client";
-import { parseThreadMessages } from "./chat";
-import type { ChatListData, ChatMessage } from "./types";
+
+import { toast } from "sonner";
+import type { ChatListData, ReplyLoadThreadMessage } from "./types";
 
 const BASE = "/api/react/Trakometer";
 const APP_RATING_URL = `${BASE}/appRatingSend`;
 
 /** "This thread" sends the full key; "Full history" asks by contract only. */
-export async function loadThreadMessages(
+export async function replyLoadThreadMessages(
   t: ChatListData,
-): Promise<{ ok: boolean; messages: ChatMessage[]; error?: string }> {
+): Promise<ReplyLoadThreadMessage> {
   const res = await fetching({
     url: `${BASE}/specificThreadChats`,
     body: {
@@ -19,11 +20,16 @@ export async function loadThreadMessages(
       messageid: t.message_id,
       ContractNo: t.ContractNo,
     },
-    showLoader: false,
+    showLoader: true,
     isFormdata: true,
   });
-  if (!res.ok) return { ok: false, messages: [], error: res.message };
-  return { ok: true, messages: parseThreadMessages(res) };
+
+  if (res.success === false) {
+    toast.error(res.message ?? "Could not load the conversation.");
+    throw new Error(res.message ?? "Could not load the conversation.");
+  }
+
+  return res as unknown as ReplyLoadThreadMessage;
 }
 
 export async function sendThreadReply(p: {

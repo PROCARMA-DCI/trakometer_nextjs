@@ -2,7 +2,7 @@
 // `ChatListData[]` from its own API and runs it through these, so the screen
 // never cares which backend call produced the rows.
 
-import type { ChatListData, ChatMessage, Contact, Party } from "./types";
+import type { ChatListData, Contact } from "./types";
 import { fmtTime } from "./utils";
 
 const AVATAR_COLORS = [
@@ -101,31 +101,4 @@ export function sortRows(rows: ChatListData[], newestFirst: boolean) {
   const t = (r: ChatListData) =>
     new Date(r.timestamp.replace(" ", "T")).getTime() || 0;
   return rows.slice().sort((a, b) => (newestFirst ? t(b) - t(a) : t(a) - t(b)));
-}
-
-/**
- * `specificThreadChats` rows → messages (oldest first).
- * The sender is read from `sender`/`user_type`; anything naming the dealer
- * side counts as the agent, everything else as the customer.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function parseThreadMessages(res: Record<string, any>): ChatMessage[] {
-  const raw: unknown = res.data ?? res.messages ?? res.notifications ?? [];
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .map((r, i): ChatMessage => {
-      const who = String(r.sender ?? r.user_type ?? "").toLowerCase();
-      const from: Party = /agent|admin|dealer|user2/.test(who)
-        ? "agent"
-        : "cust";
-      const { date, time } = formatStamp(r.timestamp);
-      return {
-        id: String(r.message_id ?? i),
-        from,
-        date,
-        time,
-        body: String(r.message ?? ""),
-      };
-    })
-    .sort((a, b) => Number(a.id) - Number(b.id) || 0);
 }

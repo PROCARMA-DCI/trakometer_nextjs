@@ -13,17 +13,6 @@ export interface Contact {
 /** Who wrote a chat message. */
 export type Party = "cust" | "agent";
 
-/** One chat message inside a thread, normalised from `specificThreadChats`. */
-export interface ChatMessage {
-  id: string;
-  from: Party;
-  date: string;
-  time: string;
-  body: string;
-}
-
-/** Display model of one conversation-list row, built from a `ChatListData` row. */
-
 export interface Dealer {
   id?: string;
   account: string;
@@ -158,4 +147,33 @@ export interface ChatListData {
 export interface Pagination {
   limit: number;
   offset: number;
+}
+
+export interface ChatMessage {
+  message_id: string;
+  threadid: string;
+  user1: string;
+  user2: string;
+  user1Name: string;
+  User2Name: string;
+  User1Image: string;
+  User2Image: string;
+  message: string;
+  /** "YYYY-MM-DD HH:mm:ss" */
+  timestamp: string;
+  title: string;
+  upload_img: string;
+  device_type: "desktop" | "mobile";
+  IsGuest: 0 | 1;
+}
+
+export interface ReplyLoadThreadMessage {
+  success: boolean;
+  message: string;
+  data: {
+    threadid: string;
+    message_id: string;
+    contract_id: string;
+    messages: ChatMessage[];
+  };
 }

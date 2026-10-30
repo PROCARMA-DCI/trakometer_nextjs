@@ -32,7 +32,6 @@ interface Props {
   pager?: Pager;
   onToggleSort: () => void;
   onOpen: (key: ChatListData, mode: "reply" | "full") => void;
-  onQuick: (key: string) => void;
 }
 
 export default function ConversationList({
@@ -46,7 +45,6 @@ export default function ConversationList({
   error,
   pager,
   onOpen,
-  onQuick,
 }: Props) {
   const chName = CHANNELS.find((c) => c.id === channel)?.label;
 
@@ -149,7 +147,7 @@ export default function ConversationList({
                     variant="outline"
                     size="icon-xs"
                     title="Quick reply"
-                    onClick={stop(() => onQuick(t.threadid))}
+                    onClick={stop(() => onOpen(t, "reply"))}
                   >
                     <Reply className="size-3.5" />
                   </Button>

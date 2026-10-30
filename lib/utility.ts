@@ -15,3 +15,7 @@ export const showDateAndTime = (rawdate: string) => {
   const final = formatted.replaceAll("/", "-");
   return final;
 };
+
+/** Unix timestamp in seconds (e.g. 1755778227) → showDateAndTime format. */
+export const showDateAndTimeFromUnix = (seconds: number | string) =>
+  showDateAndTime(new Date(Number(seconds) * 1000).toISOString());
