@@ -23,19 +23,6 @@ export interface ChatMessage {
 }
 
 /** Display model of one conversation-list row, built from a `ChatListData` row. */
-export interface ChatThread {
-  /** Unique list key (threadid + message id). */
-  key: string;
-  threadId: string;
-  messageId: string;
-  contractNo: string;
-  contact: Contact;
-  message: string;
-  device: "mobile" | "desktop";
-  date: string;
-  time: string;
-  unread: boolean;
-}
 
 export interface Dealer {
   id?: string;
@@ -166,6 +153,7 @@ export interface ChatListData {
   device_type: string;
   notification_date: string;
   icons: ChatListIcon;
+  IsGuest: "0" | "1";
 }
 export interface Pagination {
   limit: number;

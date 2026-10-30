@@ -24,14 +24,14 @@ import type { Pager } from "./chat-feed";
 
 interface Props {
   rows: ChatListData[];
-  selected: string | null;
+  selected: ChatListData | null;
   channel: ChannelId;
   newestFirst: boolean;
   loading: boolean;
   error: string | null;
   pager?: Pager;
   onToggleSort: () => void;
-  onOpen: (key: string, mode: "reply" | "full") => void;
+  onOpen: (key: ChatListData, mode: "reply" | "full") => void;
   onQuick: (key: string) => void;
 }
 
@@ -55,11 +55,12 @@ export default function ConversationList({
     else if (read_status == "green_circle") return "text-green-300";
     else return "text-muted";
   };
+
   return (
     <aside
       className={cn(
         "w-full shrink-0 flex-col border-r md:flex md:max-w-sm lg:max-w-lg",
-        selected !== null ? "hidden" : "flex",
+        selected?.threadid !== null ? "hidden" : "flex",
       )}
     >
       <div className="flex items-center gap-2 border-b px-3 py-2.5">
@@ -77,20 +78,20 @@ export default function ConversationList({
         </button>
       </div>
       <div key={pager?.page} className="scroll-whatsapp flex-1 overflow-y-auto">
-        {data.map((t) => {
+        {data.map((t, index) => {
           const stop = (fn: () => void) => (e: MouseEvent) => {
             e.stopPropagation();
             fn();
           };
           return (
             <div
-              key={t.threadid}
+              key={index}
               role="button"
               tabIndex={0}
-              onClick={() => onOpen(t.threadid, "reply")}
+              onClick={() => onOpen(t, "reply")}
               className={cn(
                 "flex gap-2.5 border-b px-3 py-2.5 transition-colors hover:bg-muted/50",
-                selected === t.threadid && "bg-primary/5",
+                // selected?.threadid == t.threadid ? "bg-primary/5" : "",
               )}
             >
               <span className="flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold bg-primary">
@@ -156,7 +157,7 @@ export default function ConversationList({
                     variant="outline"
                     size="icon-xs"
                     title="Open full conversation"
-                    onClick={stop(() => onOpen(t.threadid, "full"))}
+                    onClick={stop(() => onOpen(t, "full"))}
                   >
                     <Eye className="size-3.5" />
                   </Button>

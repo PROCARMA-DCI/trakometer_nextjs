@@ -1,24 +1,28 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { AGENT } from "@/lib/trakometer/data";
+import type {
+  ChatListData,
+  ChatMessage,
+  ThreadMode,
+} from "@/lib/trakometer/types";
+import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
-  MessagesSquare,
-  Reply,
   Eye,
-  Store,
-  Phone,
   Mail,
+  MessagesSquare,
+  Phone,
+  Reply,
+  Store,
 } from "lucide-react";
-import { AGENT } from "@/lib/trakometer/data";
-import { cn } from "@/lib/utils";
-import type { ChatMessage, ChatThread, ThreadMode } from "@/lib/trakometer/types";
-import MessageBubble from "./message-bubble";
+import { useEffect, useRef } from "react";
 import Composer from "./composer";
+import MessageBubble from "./message-bubble";
 
 type Flags = Record<string, boolean>;
 interface Props {
-  thread: ChatThread | null;
+  thread: ChatListData | null;
   messages: ChatMessage[];
   loading: boolean;
   mode: ThreadMode;

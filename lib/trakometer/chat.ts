@@ -2,13 +2,7 @@
 // `ChatListData[]` from its own API and runs it through these, so the screen
 // never cares which backend call produced the rows.
 
-import type {
-  ChatListData,
-  ChatMessage,
-  ChatThread,
-  Contact,
-  Party,
-} from "./types";
+import type { ChatListData, ChatMessage, Contact, Party } from "./types";
 import { fmtTime } from "./utils";
 
 const AVATAR_COLORS = [
@@ -50,8 +44,9 @@ export function formatStamp(ts: string | null | undefined): {
 function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return "?";
-  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : ""))
-    .toUpperCase();
+  return (
+    parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : "")
+  ).toUpperCase();
 }
 
 function colorFor(seed: string) {
@@ -75,7 +70,7 @@ export function contactFromRow(r: ChatListData): Contact {
 }
 
 /** The list rows are customer messages; unread = the dealer side hasn't read it. */
-export function toThread(r: ChatListData): ChatThread {
+export function toThread(r: ChatListData): ChatListData {
   const { date, time } = formatStamp(r.timestamp);
   return {
     key: `${r.threadid}:${r.message_id}`,
@@ -94,7 +89,7 @@ export function toThread(r: ChatListData): ChatThread {
 }
 
 /** Case-insensitive match on name / dealer / contract number. */
-export function matchesSearch(t: ChatThread, term: string): boolean {
+export function matchesSearch(t: ChatListData, term: string): boolean {
   const s = term.trim().toLowerCase();
   if (!s) return true;
   const c = t.contact;
@@ -103,7 +98,8 @@ export function matchesSearch(t: ChatThread, term: string): boolean {
 
 /** Newest/oldest ordering by the backend timestamp; rows are never mutated. */
 export function sortRows(rows: ChatListData[], newestFirst: boolean) {
-  const t = (r: ChatListData) => new Date(r.timestamp.replace(" ", "T")).getTime() || 0;
+  const t = (r: ChatListData) =>
+    new Date(r.timestamp.replace(" ", "T")).getTime() || 0;
   return rows.slice().sort((a, b) => (newestFirst ? t(b) - t(a) : t(a) - t(b)));
 }
 
@@ -119,7 +115,9 @@ export function parseThreadMessages(res: Record<string, any>): ChatMessage[] {
   return raw
     .map((r, i): ChatMessage => {
       const who = String(r.sender ?? r.user_type ?? "").toLowerCase();
-      const from: Party = /agent|admin|dealer|user2/.test(who) ? "agent" : "cust";
+      const from: Party = /agent|admin|dealer|user2/.test(who)
+        ? "agent"
+        : "cust";
       const { date, time } = formatStamp(r.timestamp);
       return {
         id: String(r.message_id ?? i),

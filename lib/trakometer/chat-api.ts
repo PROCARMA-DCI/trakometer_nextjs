@@ -3,25 +3,24 @@
 
 import { fetching } from "@/lib/api/client";
 import { parseThreadMessages } from "./chat";
-import type { ChatMessage, ChatThread, ThreadMode } from "./types";
+import type { ChatListData, ChatMessage } from "./types";
 
 const BASE = "/api/react/Trakometer";
-const THREAD_URL = `${BASE}/specificThreadChats`;
-const REPLY_URL = `${BASE}/replyToThreadChat`;
 const APP_RATING_URL = `${BASE}/appRatingSend`;
 
 /** "This thread" sends the full key; "Full history" asks by contract only. */
 export async function loadThreadMessages(
-  t: ChatThread,
-  mode: ThreadMode,
+  t: ChatListData,
 ): Promise<{ ok: boolean; messages: ChatMessage[]; error?: string }> {
   const res = await fetching({
-    url: THREAD_URL,
-    body:
-      mode === "reply"
-        ? { threadid: t.threadId, messageid: t.messageId, ContractNo: t.contractNo }
-        : { ContractNo: t.contractNo },
+    url: `${BASE}/specificThreadChats`,
+    body: {
+      threadid: t.threadid,
+      messageid: t.message_id,
+      ContractNo: t.ContractNo,
+    },
     showLoader: false,
+    isFormdata: true,
   });
   if (!res.ok) return { ok: false, messages: [], error: res.message };
   return { ok: true, messages: parseThreadMessages(res) };
@@ -35,7 +34,7 @@ export async function sendThreadReply(p: {
   email: boolean;
 }) {
   const res = await fetching({
-    url: REPLY_URL,
+    url: `${BASE}/replyToThreadChat`,
     body: {
       message_reply: p.message,
       message_reply_id: p.replyToId,
@@ -44,7 +43,10 @@ export async function sendThreadReply(p: {
       isSendEmailNow: p.email ? 1 : 0,
     },
   });
-  return { ok: res.ok && res.success !== false, error: res.message as string | undefined };
+  return {
+    ok: res.ok && res.success !== false,
+    error: res.message as string | undefined,
+  };
 }
 
 export async function sendAppRating(contractNo: string) {
@@ -52,5 +54,8 @@ export async function sendAppRating(contractNo: string) {
     url: APP_RATING_URL,
     body: { ContractID: contractNo, IsGuest: 0 },
   });
-  return { ok: res.ok && res.success !== false, error: res.message as string | undefined };
+  return {
+    ok: res.ok && res.success !== false,
+    error: res.message as string | undefined,
+  };
 }

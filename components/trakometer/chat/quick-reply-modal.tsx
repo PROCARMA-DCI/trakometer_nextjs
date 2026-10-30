@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import type { ChatThread } from "@/lib/trakometer/types";
+import type { ChatListData } from "@/lib/trakometer/types";
 import { cn } from "@/lib/utils";
 import {
   BellRing,
@@ -21,7 +21,7 @@ import {
 import { useState } from "react";
 
 interface Props {
-  thread: ChatThread;
+  thread: ChatListData;
   starred: boolean;
   onStar: () => void;
   onClose: () => void;
@@ -66,9 +66,7 @@ export default function QuickReplyModal({
           </span>
           <div className="flex-1 rounded-lg border p-3">
             <div className="flex flex-wrap items-center gap-1.5">
-              <strong className="text-sm">
-                {`${c.name} (${c.id})`}
-              </strong>
+              <strong className="text-sm">{`${c.name} (${c.id})`}</strong>
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                 Chat
               </span>
