@@ -30,6 +30,26 @@ export async function replyLoadThreadMessages(
 
   return res as unknown as ReplyLoadThreadMessage;
 }
+export async function notificationViewApi(
+  t: ChatListData,
+): Promise<ReplyLoadThreadMessage> {
+  const res = await fetching({
+    url: `${BASE}/viewContractChatWindow`,
+    body: {
+      threadid: t.threadid,
+      ContractNo: t.ContractNo,
+    },
+    showLoader: true,
+    isFormdata: true,
+  });
+
+  if (!res || res.success === false) {
+    toast.error(res.message ?? "Could not load the conversation.");
+    throw new Error(res.message ?? "Could not load the conversation.");
+  }
+
+  return res as unknown as ReplyLoadThreadMessage;
+}
 
 export async function sendThreadReply(p: {
   message_reply: string;

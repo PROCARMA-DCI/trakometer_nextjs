@@ -1,6 +1,9 @@
 "use client";
 
-import { replyLoadThreadMessages } from "@/lib/trakometer/chat-api";
+import {
+  notificationViewApi,
+  replyLoadThreadMessages,
+} from "@/lib/trakometer/chat-api";
 import type {
   ChannelId,
   ChatListData,
@@ -34,6 +37,7 @@ const ChatScreen = ({
   const [replyLoadMessages, setReplyLoadMessages] = useState<
     ChatMessage[] | null
   >(null);
+  const [viewMessages, setViewMessages] = useState<ChatMessage[] | null>(null);
   const [specificThread, setSpecificThread] =
     useState<SpecificThreadChat | null>(null);
 
@@ -43,15 +47,22 @@ const ChatScreen = ({
     setReplyLoadMessages(r.data.messages);
   }, []);
 
+  const loadViewMessages = useCallback(async (item: ChatListData) => {
+    const r = await notificationViewApi(item);
+    setSpecificThread(r.data);
+    setViewMessages(r.data.messages);
+  }, []);
+
   const openRow = useCallback(
     (item: ChatListData, m: ThreadMode) => {
       setMode(m);
       setSelected(item);
       if (m === "reply") loadMessages(item);
+      else if (m === "full") loadViewMessages(item);
     },
-    [loadMessages],
+    [loadMessages, loadViewMessages],
   );
-
+  console.log({ viewMessages });
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
       <ConversationList

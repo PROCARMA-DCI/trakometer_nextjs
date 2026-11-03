@@ -190,6 +190,8 @@ export interface ChatMessage {
   upload_img: string;
   device_type: "desktop" | "mobile";
   IsGuest: 0 | 1;
+  message_date: string;
+  message_time: string;
 }
 
 export interface ReplyLoadThreadMessage {
