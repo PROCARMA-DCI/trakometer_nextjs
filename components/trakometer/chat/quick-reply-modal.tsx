@@ -10,7 +10,11 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-import { sendAppRating, sendThreadReply } from "@/lib/trakometer/chat-api";
+import {
+  makeMessageFavorite,
+  sendAppRating,
+  sendThreadReply,
+} from "@/lib/trakometer/chat-api";
 import type {
   ChatListData,
   ChatMessage,
@@ -46,6 +50,17 @@ function Bubble({ m, mine }: { m: ChatMessage; mine: boolean }) {
 
   const DeviceIcon = m.device_type === "mobile" ? Smartphone : Monitor;
 
+  // Props are read-only, so keep the star in state; the backend may send "0"/"1".
+  const [toggled, setFavourite] = useState<0 | 1>(m.favourite);
+
+  const loadMessageFavorite = async () => {
+    const res = await makeMessageFavorite(m.message_id, toggled);
+    if (!res.ok) {
+      return toast.error(res.error ?? "Could not update the favourite.");
+    }
+    setFavourite(res.data?.favourite ?? m.favourite);
+  };
+
   return (
     <div className={cn("flex items-end gap-2.5", mine && "flex-row-reverse")}>
       <Avatar className="size-8">
@@ -69,8 +84,11 @@ function Bubble({ m, mine }: { m: ChatMessage; mine: boolean }) {
               <Clock className="size-3" />
               {showDateAndTimeFromUnix(m.timestamp)}
             </span>
-            <span className="w-full flex justify-end cursor-pointer">
-              <Star size={20} />
+            <span
+              className="w-full flex justify-end cursor-pointer"
+              onClick={loadMessageFavorite}
+            >
+              <Star size={20} fill={toggled ? "orange" : "none"} />
             </span>
           </div>
         </div>
@@ -151,11 +169,7 @@ export default function QuickReplyModal({
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-muted/30 px-5 py-4">
           {messages.map((m) => (
-            <Bubble
-              key={m.message_id}
-              m={m}
-              mine={m.user1Name !== selected.user1Name}
-            />
+            <Bubble key={m.message_id} m={m} mine={m.sender_type === "admin"} />
           ))}
           <div ref={endRef} />
         </div>

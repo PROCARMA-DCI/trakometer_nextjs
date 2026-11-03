@@ -192,6 +192,8 @@ export interface ChatMessage {
   IsGuest: 0 | 1;
   message_date: string;
   message_time: string;
+  sender_type: "admin" | "customer";
+  favourite: 0 | 1;
 }
 
 export interface ReplyLoadThreadMessage {

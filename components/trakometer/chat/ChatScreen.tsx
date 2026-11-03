@@ -50,8 +50,8 @@ const ChatScreen = ({
 
   const loadViewMessages = useCallback(async (item: ChatListData) => {
     const r = await notificationViewApi(item);
-    setSpecificThread(r.data);
-    setViewMessages(r.data.messages);
+    setSpecificThread(r?.data);
+    setViewMessages(r?.data?.messages);
   }, []);
 
   const openRow = useCallback(

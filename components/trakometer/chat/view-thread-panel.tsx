@@ -3,13 +3,16 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { sendAppRating, sendThreadReply } from "@/lib/trakometer/chat-api";
+import {
+  makeMessageFavorite,
+  sendAppRating,
+  sendThreadReply,
+} from "@/lib/trakometer/chat-api";
 import type {
   ChatListData,
   ChatMessage,
   SpecificThreadChat,
 } from "@/lib/trakometer/types";
-import { showDateAndTimeFromUnix } from "@/lib/utility";
 import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
@@ -130,10 +133,9 @@ function ViewBubble({
   m,
   contractNo,
   mine,
-  starred,
-  replying,
   thread,
-  onStar,
+  replying,
+  canReply,
   onReply,
   onCancelReply,
   onSent,
@@ -141,16 +143,23 @@ function ViewBubble({
   m: ChatMessage;
   contractNo: string;
   mine: boolean;
-  starred: boolean;
-  replying: boolean;
   thread: SpecificThreadChat;
-  onStar: () => void;
+  replying: boolean;
+  canReply: boolean;
   onReply: () => void;
   onCancelReply: () => void;
   onSent: () => void;
 }) {
   const DeviceIcon = m.device_type === "mobile" ? Smartphone : Monitor;
   const name = m.user1Name;
+  const [toggled, setFavourite] = useState<0 | 1>(m.favourite);
+  const loadMessageFavorite = async () => {
+    const res = await makeMessageFavorite(m.message_id, toggled);
+    if (!res.ok) {
+      return toast.error(res.error ?? "Could not update the favourite.");
+    }
+    setFavourite(res.data?.favourite ?? m.favourite);
+  };
 
   return (
     <div className={cn("flex items-start gap-3", mine && "flex-row-reverse")}>
@@ -168,12 +177,11 @@ function ViewBubble({
           <div className="flex min-w-0 flex-col gap-0.5">
             <span className="truncate text-sm font-medium text-sky-600">
               {name}
-              {!mine && ` (${contractNo})`}
               {m.title && ` ${m.title}`}
             </span>
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="size-3" />
-              {showDateAndTimeFromUnix(m.timestamp)}
+              {m.message_date} {m.message_time}
               <DeviceIcon className="ml-1 size-3" />
             </span>
           </div>
@@ -183,7 +191,7 @@ function ViewBubble({
                 {m.User2Name}
               </span>
             )}
-            {!mine && !replying && (
+            {!mine && canReply && (
               <Button
                 type="button"
                 variant="outline"
@@ -194,18 +202,12 @@ function ViewBubble({
                 Reply
               </Button>
             )}
-            <button
-              type="button"
-              title={starred ? "Remove star" : "Star"}
-              onClick={onStar}
+            <span
+              className="w-full flex justify-end cursor-pointer"
+              onClick={loadMessageFavorite}
             >
-              <Star
-                className={cn(
-                  "size-5",
-                  starred && "fill-amber-400 text-amber-400",
-                )}
-              />
-            </button>
+              <Star size={20} fill={toggled ? "orange" : "none"} />
+            </span>
           </div>
         </div>
         {m.message && (
@@ -243,8 +245,6 @@ export default function ViewThreadPanel({
   onSent,
 }: Props) {
   const [replyId, setReplyId] = useState<string | null>(null);
-  // Star marks are client-only (no API).
-  const [starred, setStarred] = useState<Record<string, boolean>>({});
 
   return (
     <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -277,13 +277,11 @@ export default function ViewThreadPanel({
             contractNo={thread.ContractNo}
             // Same rule as QuickReplyModal: anyone other than the sender of the
             // selected row is "mine"; the rest are the ones we can reply to.
-            mine={m.user1Name !== selected.user1Name}
-            starred={!!starred[m.message_id]}
-            replying={replyId === m.message_id}
+            mine={m.sender_type === "admin"}
             thread={thread}
-            onStar={() =>
-              setStarred((s) => ({ ...s, [m.message_id]: !s[m.message_id] }))
-            }
+            replying={replyId === m.message_id}
+            // Only one reply form at a time: hide every Reply until it is closed.
+            canReply={replyId === null}
             onReply={() => setReplyId(m.message_id)}
             onCancelReply={() => setReplyId(null)}
             onSent={() => {

@@ -86,3 +86,16 @@ export async function sendAppRating(contractNo: string, IsGuest: boolean) {
     error: res.message as string | undefined,
   };
 }
+
+export async function makeMessageFavorite(message_id: string, fav: 0 | 1) {
+  const res = await fetching({
+    url: `${BASE}/favoritemessage`,
+    body: { message_id, fav: fav },
+  });
+  return {
+    ok: res.ok && res.success !== false,
+    message: res.message as string | undefined,
+    error: res.message as string | undefined,
+    data: res.data,
+  };
+}
