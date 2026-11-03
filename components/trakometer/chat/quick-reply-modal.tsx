@@ -135,7 +135,7 @@ export default function QuickReplyModal({
     if (res.ok) toast.success(res.message);
     else toast.error(res.error ?? "Could not send the app rating request.");
   };
-  console.log({ thread, messages });
+
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-2xl">

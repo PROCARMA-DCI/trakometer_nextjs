@@ -15,6 +15,7 @@ import { useCallback, useState } from "react";
 import type { Pager } from "./chat-feed";
 import ConversationList from "./conversation-list";
 import QuickReplyModal from "./quick-reply-modal";
+import ViewThreadPanel from "./view-thread-panel";
 
 interface Props {
   rows: ChatListData[];
@@ -62,7 +63,6 @@ const ChatScreen = ({
     },
     [loadMessages, loadViewMessages],
   );
-  console.log({ viewMessages });
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
       <ConversationList
@@ -76,26 +76,18 @@ const ChatScreen = ({
         onToggleSort={() => setNewestFirst(!newestFirst)}
         onOpen={openRow}
       />
-      {/* <ThreadPanel
-        thread={selThread}
-        messages={messages}
-        loading={messagesLoading}
-        mode={mode}
-        onMode={(m) => {
-          setMode(m);
-          setReplyMsg(null);
-        }}
-        onBack={() => setSelected(null)}
-        starred={starred}
-        flagged={flagged}
-        replyMsg={replyMsg}
-        onStar={toggleStar}
-        onFlag={toggleFlag}
-        onReply={setReplyMsg}
-        onCancelReply={() => setReplyMsg(null)}
-        onSend={(body, via) => replyMsg && reply(replyMsg, body, via)}
-        onAppRating={() => selThread && appRating(selThread.contractNo)}
-      /> */}
+      {mode === "full" && specificThread && selected && viewMessages && (
+        <ViewThreadPanel
+          thread={specificThread}
+          selected={selected}
+          messages={viewMessages}
+          onBack={() => {
+            setSelected(null);
+            setViewMessages(null);
+          }}
+          onSent={() => loadViewMessages(selected)}
+        />
+      )}
 
       {mode === "reply" && specificThread && selected && replyLoadMessages && (
         <QuickReplyModal
