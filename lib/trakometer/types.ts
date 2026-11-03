@@ -144,6 +144,31 @@ export interface ChatListData {
   icons: ChatListIcon;
   IsGuest: "0" | "1";
 }
+export interface SpecificThreadChat {
+  ContractID: string;
+  ContractNo: string;
+  CustomerID: string;
+  CustomerName: string;
+  DealerID: string;
+  DealerTitle: string;
+  can_reply: boolean;
+  game_tournament?: boolean;
+  is_cancelled: boolean;
+  is_guest: boolean;
+  messageid: string;
+  threadid: string;
+  total_messages: number;
+  messages: ChatMessage[];
+  app_rating: AppRating;
+}
+export interface AppRating {
+  already_rated: boolean;
+  enabled: boolean;
+  devices: {
+    android: Record<string, string>;
+    iphone: Record<string, string>;
+  };
+}
 export interface Pagination {
   limit: number;
   offset: number;
@@ -170,10 +195,5 @@ export interface ChatMessage {
 export interface ReplyLoadThreadMessage {
   success: boolean;
   message: string;
-  data: {
-    threadid: string;
-    message_id: string;
-    contract_id: string;
-    messages: ChatMessage[];
-  };
+  data: SpecificThreadChat;
 }

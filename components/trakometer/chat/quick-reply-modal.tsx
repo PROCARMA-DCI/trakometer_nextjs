@@ -11,7 +11,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 import { sendAppRating, sendThreadReply } from "@/lib/trakometer/chat-api";
-import type { ChatListData, ChatMessage } from "@/lib/trakometer/types";
+import type {
+  ChatListData,
+  ChatMessage,
+  SpecificThreadChat,
+} from "@/lib/trakometer/types";
 import { showDateAndTimeFromUnix } from "@/lib/utility";
 import { cn } from "@/lib/utils";
 import { BellRing, Clock, Monitor, Send, Smartphone, Star } from "lucide-react";
@@ -19,7 +23,8 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface Props {
-  thread: ChatListData;
+  thread: SpecificThreadChat;
+  selected: ChatListData;
   messages: ChatMessage[];
   onClose: () => void;
   /** Called after a reply is sent so the caller can reload the messages. */
@@ -49,20 +54,23 @@ function Bubble({ m, mine }: { m: ChatMessage; mine: boolean }) {
       </Avatar>
       <div
         className={cn(
-          "flex max-w-[90%] flex-col gap-1 rounded-2xl border px-3.5 py-2.5",
+          "flex w-full flex-col gap-1 rounded-2xl border  px-3.5  py-2.5",
           mine
-            ? "rounded-br-sm border-primary/20 bg-primary/10"
-            : "rounded-bl-sm bg-card",
+            ? "rounded-br-sm border-primary/20 bg-primary/10 ml-24"
+            : "rounded-bl-sm bg-card mr-24",
         )}
       >
-        <div className="flex  items-center justify-between gap-x-2 text-xs ">
+        <div className="w-full flex  items-center justify-between gap-x-2 text-xs ">
           <strong className="font-semibold">{name}</strong>
           {m.title && <span className="text-muted-foreground">{m.title}</span>}
           <div>
             <span className="text-xs">{m.User2Name}</span>
-            <span className="flex gap-1 items-center">
+            <span className="whitespace-nowrap flex gap-1 items-center">
               <Clock className="size-3" />
               {showDateAndTimeFromUnix(m.timestamp)}
+            </span>
+            <span className="w-full flex justify-end cursor-pointer">
+              <Star size={20} />
             </span>
           </div>
         </div>
@@ -90,6 +98,7 @@ function Bubble({ m, mine }: { m: ChatMessage; mine: boolean }) {
 
 export default function QuickReplyModal({
   thread,
+  selected,
   messages,
   onClose,
   onSent,
@@ -108,10 +117,11 @@ export default function QuickReplyModal({
   const send = async () => {
     setSending(true);
     const res = await sendThreadReply({
-      message: draft.trim(),
-      replyToId: thread.threadid,
-      sms,
-      email,
+      message_reply: draft.trim(),
+      message_id: thread.messageid,
+      isSendSMS: sms,
+      isSendEmailNow: email,
+      IsGuest: thread.is_guest,
     });
     setSending(false);
     if (!res.ok) return toast.error(res.error ?? "Could not send the reply.");
@@ -121,8 +131,8 @@ export default function QuickReplyModal({
   };
 
   const rate = async () => {
-    const res = await sendAppRating(thread.ContractNo);
-    if (res.ok) toast.success("App rating request sent.");
+    const res = await sendAppRating(thread.ContractID, thread.is_guest);
+    if (res.ok) toast.success(res.message);
     else toast.error(res.error ?? "Could not send the app rating request.");
   };
   console.log({ thread, messages });
@@ -132,7 +142,7 @@ export default function QuickReplyModal({
         <DialogHeader className="border-b px-5 py-4">
           <DialogTitle className="flex items-center gap-2">
             <BellRing className="size-4 text-primary" />
-            {thread.user1Name}
+            Notification
             <span className="text-xs font-normal text-muted-foreground">
               {thread.ContractNo}
             </span>
@@ -144,7 +154,7 @@ export default function QuickReplyModal({
             <Bubble
               key={m.message_id}
               m={m}
-              mine={m.user1Name !== thread.user1Name}
+              mine={m.user1Name !== selected.user1Name}
             />
           ))}
           <div ref={endRef} />

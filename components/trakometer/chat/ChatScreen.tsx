@@ -5,6 +5,7 @@ import type {
   ChannelId,
   ChatListData,
   ChatMessage,
+  SpecificThreadChat,
   ThreadMode,
 } from "@/lib/trakometer/types";
 import { useCallback, useState } from "react";
@@ -33,9 +34,12 @@ const ChatScreen = ({
   const [replyLoadMessages, setReplyLoadMessages] = useState<
     ChatMessage[] | null
   >(null);
+  const [specificThread, setSpecificThread] =
+    useState<SpecificThreadChat | null>(null);
 
   const loadMessages = useCallback(async (item: ChatListData) => {
     const r = await replyLoadThreadMessages(item);
+    setSpecificThread(r.data);
     setReplyLoadMessages(r.data.messages);
   }, []);
 
@@ -82,9 +86,10 @@ const ChatScreen = ({
         onAppRating={() => selThread && appRating(selThread.contractNo)}
       /> */}
 
-      {mode === "reply" && selected && replyLoadMessages && (
+      {mode === "reply" && specificThread && selected && replyLoadMessages && (
         <QuickReplyModal
-          thread={selected}
+          thread={specificThread}
+          selected={selected}
           messages={replyLoadMessages}
           onClose={() => {
             setSelected(null);

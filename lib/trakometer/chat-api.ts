@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import type { ChatListData, ReplyLoadThreadMessage } from "./types";
 
 const BASE = "/api/react/Trakometer";
-const APP_RATING_URL = `${BASE}/appRatingSend`;
 
 /** "This thread" sends the full key; "Full history" asks by contract only. */
 export async function replyLoadThreadMessages(
@@ -24,7 +23,7 @@ export async function replyLoadThreadMessages(
     isFormdata: true,
   });
 
-  if (res.success === false) {
+  if (!res || res.success === false) {
     toast.error(res.message ?? "Could not load the conversation.");
     throw new Error(res.message ?? "Could not load the conversation.");
   }
@@ -33,20 +32,21 @@ export async function replyLoadThreadMessages(
 }
 
 export async function sendThreadReply(p: {
-  message: string;
+  message_reply: string;
   /** Id of the message being replied to. */
-  replyToId: string;
-  sms: boolean;
-  email: boolean;
+  message_id: string;
+  isSendSMS: boolean;
+  isSendEmailNow: boolean;
+  IsGuest: boolean;
 }) {
   const res = await fetching({
     url: `${BASE}/replyToThreadChat`,
     body: {
-      message_reply: p.message,
-      message_reply_id: p.replyToId,
-      IsGuest: 0,
-      isSendSMS: p.sms ? 1 : 0,
-      isSendEmailNow: p.email ? 1 : 0,
+      message_reply: p.message_reply,
+      message_reply_id: p.message_id,
+      IsGuest: p.IsGuest,
+      isSendSMS: p.isSendSMS ? 1 : 0,
+      isSendEmailNow: p.isSendEmailNow ? 1 : 0,
     },
   });
   return {
@@ -55,13 +55,14 @@ export async function sendThreadReply(p: {
   };
 }
 
-export async function sendAppRating(contractNo: string) {
+export async function sendAppRating(contractNo: string, IsGuest: boolean) {
   const res = await fetching({
-    url: APP_RATING_URL,
-    body: { ContractID: contractNo, IsGuest: 0 },
+    url: `${BASE}/appratingsend`,
+    body: { ContractID: contractNo, IsGuest: IsGuest },
   });
   return {
     ok: res.ok && res.success !== false,
+    message: res.message as string | undefined,
     error: res.message as string | undefined,
   };
 }
