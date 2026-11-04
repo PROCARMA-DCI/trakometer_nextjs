@@ -73,11 +73,15 @@ export default function ConversationList({
       | "grey_circle"
       | "green_circle"
       | "red_circle"
-      | "yellow_circle",
+      | "yellow_circle"
+      | true
+      | false,
   ) => {
-    if (read_status == "grey_circle") return "text-gray-500";
+    if (read_status == "grey_circle" || read_status == false)
+      return "text-gray-500";
     else if (read_status == "green_circle") return "text-green-300";
-    else if (read_status == "red_circle") return "text-red-500";
+    else if (read_status == "red_circle" || read_status === true)
+      return "text-red-500";
     else if (read_status == "yellow_circle") return "text-yellow-500";
     else return "text-muted";
   };
@@ -141,22 +145,23 @@ export default function ConversationList({
                   &rarr; {t.User2Name}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5 text-muted-foreground">
-                  {t.icons.read_status && (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="12"
-                      height="12"
-                      viewBox="0 0 12 12"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      fill="currentColor"
-                      className={circle(t.icons.read_status)}
-                    >
-                      <circle cx="6" cy="6" r="5" />
-                    </svg>
-                  )}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="currentColor"
+                    className={circle(
+                      t.icons.read_status || t.icons?.is_unread,
+                    )}
+                  >
+                    <circle cx="6" cy="6" r="5" />
+                  </svg>
+
                   {t.icons.service_video && <Video className="size-3.5" />}
                   <DeviceIcon device={t.icons.device} />
                   {t.icons.gps_connected && <MapPin className="size-3.5" />}

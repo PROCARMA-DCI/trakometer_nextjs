@@ -10,8 +10,8 @@ export const nguageFeed: ChatFeed = {
     sortColumn: "",
     sortOrder: "",
     FixedDateParameter: range,
-    dealer_title: "",
-    SearchCustomer: search,
+    dealer_title: search,
+    SearchCustomer: "",
   }),
 
   parse: (res) => ({

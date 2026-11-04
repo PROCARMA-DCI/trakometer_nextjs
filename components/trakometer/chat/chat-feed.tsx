@@ -99,20 +99,28 @@ export function ChatFeedProvider({
 
   // StrictMode (dev) runs effects twice; refs survive that, so reuse the in-flight request
   // instead of sending an identical second one. `reloadKey` in the key keeps Refresh working.
-  const inflight = useRef<{ key: string; promise: Promise<ApiResult> } | null>(null);
+  const inflight = useRef<{ key: string; promise: Promise<ApiResult> } | null>(
+    null,
+  );
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      setLoading(true);
       const key = `${url}|${body}|${reloadKey}`;
       if (inflight.current?.key !== key) {
         inflight.current = {
           key,
-          promise: fetching({ url, body: JSON.parse(body), setLoading }),
+          promise: fetching({
+            url,
+            body: JSON.parse(body),
+            badgeLoading: "chat-loading",
+          }),
         };
       }
       const res = await inflight.current.promise;
       if (cancelled) return;
+      setLoading(false);
       if (res.status === 401 || res.status === 403) {
         setRows([]);
         unauthorized(res.message);

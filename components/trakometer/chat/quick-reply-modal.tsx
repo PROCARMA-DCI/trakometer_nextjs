@@ -22,7 +22,15 @@ import type {
 } from "@/lib/trakometer/types";
 import { showDateAndTimeFromUnix } from "@/lib/utility";
 import { cn } from "@/lib/utils";
-import { BellRing, Clock, Monitor, Send, Smartphone, Star } from "lucide-react";
+import {
+  BellRing,
+  Clock,
+  Monitor,
+  Phone,
+  Send,
+  Smartphone,
+  Star,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -60,7 +68,6 @@ function Bubble({ m, mine }: { m: ChatMessage; mine: boolean }) {
     }
     setFavourite(res.data?.favourite ?? m.favourite);
   };
-
   return (
     <div className={cn("flex items-end gap-2.5", mine && "flex-row-reverse")}>
       <Avatar className="size-8">
@@ -106,6 +113,9 @@ function Bubble({ m, mine }: { m: ChatMessage; mine: boolean }) {
             className="max-h-48 w-fit rounded-lg border"
           />
         )}
+        <div className="flex items-center gap-1.5 text-[11px] font-bold">
+          <strong>TEL</strong> <Phone className="size-3" />: {m.User1Phone}
+        </div>
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <DeviceIcon className="size-3" />
         </div>

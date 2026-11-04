@@ -126,6 +126,7 @@ export interface ChatListIcon {
   guest: boolean;
   read_status: "grey_circle" | "green_circle";
   service_video: boolean;
+  is_unread?: boolean;
 }
 export interface ChatListData {
   threadid: string;
@@ -133,6 +134,7 @@ export interface ChatListData {
   User1Image: string;
   user1Name: string | null;
   User2Name: string | null;
+
   message: string;
   ContractNo: string;
   /** "YYYY-MM-DD HH:mm:ss" */
@@ -153,6 +155,7 @@ export interface SpecificThreadChat {
   DealerTitle: string;
   can_reply: boolean;
   game_tournament?: boolean;
+
   is_cancelled: boolean;
   is_guest: boolean;
   messageid: string;
@@ -185,6 +188,7 @@ export interface ChatMessage {
   User1Image: string;
   User2Image: string;
   message: string;
+  User1Phone: string;
   /** "YYYY-MM-DD HH:mm:ss" */
   timestamp: string;
   title: string;
