@@ -13,6 +13,7 @@ import {
   Clock2,
   Eye,
   MapPin,
+  MessageSquareText,
   Monitor,
   Reply,
   Smartphone,
@@ -21,6 +22,17 @@ import {
 } from "lucide-react";
 import type { MouseEvent } from "react";
 import { type Pager } from "./chat-feed";
+
+const DEVICE_ICONS = {
+  mobile: Smartphone,
+  sms: MessageSquareText,
+  desktop: Monitor,
+} as const;
+
+function DeviceIcon({ device }: { device?: string }) {
+  const Icon = DEVICE_ICONS[device as keyof typeof DEVICE_ICONS] ?? Monitor;
+  return <Icon className="size-3.5" />;
+}
 
 interface Props {
   rows: ChatListData[];
@@ -56,9 +68,17 @@ export default function ConversationList({
     pageSize: 20,
     onPage: () => {},
   };
-  const circle = (read_status: "grey_circle" | "green_circle") => {
+  const circle = (
+    read_status:
+      | "grey_circle"
+      | "green_circle"
+      | "red_circle"
+      | "yellow_circle",
+  ) => {
     if (read_status == "grey_circle") return "text-gray-500";
     else if (read_status == "green_circle") return "text-green-300";
+    else if (read_status == "red_circle") return "text-red-500";
+    else if (read_status == "yellow_circle") return "text-yellow-500";
     else return "text-muted";
   };
 
@@ -138,11 +158,7 @@ export default function ConversationList({
                     </svg>
                   )}
                   {t.icons.service_video && <Video className="size-3.5" />}
-                  {t.icons.device === "mobile" ? (
-                    <Smartphone className="size-3.5" />
-                  ) : (
-                    <Monitor className="size-3.5" />
-                  )}
+                  <DeviceIcon device={t.icons.device} />
                   {t.icons.gps_connected && <MapPin className="size-3.5" />}
                   {t.icons.guest && <User className="size-3.5" />}
                 </div>

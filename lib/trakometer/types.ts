@@ -121,7 +121,7 @@ export interface DashboardData {
 }
 
 export interface ChatListIcon {
-  device: "desktop" | "mobile";
+  device: "desktop" | "mobile" | "sms";
   gps_connected: boolean;
   guest: boolean;
   read_status: "grey_circle" | "green_circle";

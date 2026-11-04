@@ -1,7 +1,7 @@
 "use client";
 
 import { usePortal } from "@/components/trakometer/portal-provider";
-import { fetching } from "@/lib/api/client";
+import { fetching, type ApiResult } from "@/lib/api/client";
 import type {
   ChannelId,
   ChatListData,
@@ -13,6 +13,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -96,14 +97,21 @@ export function ChatFeedProvider({
   );
   const { url, parse } = feed;
 
+  // StrictMode (dev) runs effects twice; refs survive that, so reuse the in-flight request
+  // instead of sending an identical second one. `reloadKey` in the key keeps Refresh working.
+  const inflight = useRef<{ key: string; promise: Promise<ApiResult> } | null>(null);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const res = await fetching({
-        url,
-        body: JSON.parse(body),
-        setLoading,
-      });
+      const key = `${url}|${body}|${reloadKey}`;
+      if (inflight.current?.key !== key) {
+        inflight.current = {
+          key,
+          promise: fetching({ url, body: JSON.parse(body), setLoading }),
+        };
+      }
+      const res = await inflight.current.promise;
       if (cancelled) return;
       if (res.status === 401 || res.status === 403) {
         setRows([]);
