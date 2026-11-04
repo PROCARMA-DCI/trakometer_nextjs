@@ -5,6 +5,7 @@ import { nguageFeed } from "./feed";
 
 export default function Page() {
   const { rows, loading, error, pager } = useChatFeed();
+  console.log({ pager });
   return (
     <ChatScreen
       rows={rows}

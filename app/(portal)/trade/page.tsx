@@ -5,6 +5,7 @@ import { tradeFeed } from "./feed";
 
 export default function Page() {
   const { rows, loading, error, pager } = useChatFeed();
+
   return (
     <ChatScreen
       rows={rows}

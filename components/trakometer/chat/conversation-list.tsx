@@ -20,7 +20,7 @@ import {
   Video,
 } from "lucide-react";
 import type { MouseEvent } from "react";
-import type { Pager } from "./chat-feed";
+import { type Pager } from "./chat-feed";
 
 interface Props {
   rows: ChatListData[];
@@ -47,7 +47,15 @@ export default function ConversationList({
   onOpen,
 }: Props) {
   const chName = CHANNELS.find((c) => c.id === channel)?.label;
-
+  const { total, limit, offset, hasNext, page, pageSize, onPage } = pager ?? {
+    total: null,
+    limit: 20,
+    offset: null,
+    hasNext: false,
+    page: 0,
+    pageSize: 20,
+    onPage: () => {},
+  };
   const circle = (read_status: "grey_circle" | "green_circle") => {
     if (read_status == "grey_circle") return "text-gray-500";
     else if (read_status == "green_circle") return "text-green-300";
@@ -63,9 +71,11 @@ export default function ConversationList({
     >
       <div className="flex items-center gap-2 border-b px-3 py-2.5">
         <strong className="text-sm font-semibold">{chName}</strong>
-        <span className="text-xs text-muted-foreground">
-          {data.length} messages
-        </span>
+        {total && (
+          <span className="text-xs text-muted-foreground">
+            {total} messages
+          </span>
+        )}
         <div className="flex-1" />
         <button
           onClick={onToggleSort}
@@ -75,7 +85,7 @@ export default function ConversationList({
           {newestFirst ? "Newest first" : "Oldest first"}
         </button>
       </div>
-      <div key={pager?.page} className="scroll-whatsapp flex-1 overflow-y-auto">
+      <div key={page} className="scroll-whatsapp flex-1 overflow-y-auto">
         {data.map((t, index) => {
           const stop = (fn: () => void) => (e: MouseEvent) => {
             e.stopPropagation();
@@ -93,7 +103,7 @@ export default function ConversationList({
               )}
             >
               <span className="flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold bg-primary">
-                {t.user1Name.charAt(0).toUpperCase()}
+                {t?.user1Name?.charAt(0).toUpperCase()}
               </span>
               <div className="min-w-0 flex-1 ">
                 <div className="flex items-center gap-1.5 mb-1">
@@ -171,30 +181,30 @@ export default function ConversationList({
           </div>
         )}
       </div>
-      {pager && (pager.page > 0 || pager.hasNext) && (
+      {pager && (page > 0 || hasNext) && (
         <div className="flex items-center gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
           <span>
-            {pager.page * pager.pageSize + 1}&ndash;
-            {pager.page * pager.pageSize + data.length}
-            {pager.total !== null && ` of ${pager.total}`}
+            {page * pageSize + 1}&ndash;
+            {page * pageSize + data.length}
+            {total !== null && ` of ${total}`}
           </span>
           <div className="flex-1" />
           <Button
             variant="outline"
             size="icon-xs"
             title="Previous page"
-            disabled={pager.page === 0 || loading}
-            onClick={() => pager!.onPage(pager!.page - 1)}
+            disabled={page === 0 || loading}
+            onClick={() => onPage(page - 1)}
           >
             <ChevronLeft className="size-3.5" />
           </Button>
-          <span>Page {pager.page + 1}</span>
+          <span>Page {page + 1}</span>
           <Button
             variant="outline"
             size="icon-xs"
             title="Next page"
-            disabled={!pager.hasNext || loading}
-            onClick={() => pager!.onPage(pager!.page + 1)}
+            disabled={!hasNext || loading}
+            onClick={() => onPage(page + 1)}
           >
             <ChevronRight className="size-3.5" />
           </Button>

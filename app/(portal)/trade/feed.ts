@@ -12,7 +12,7 @@ export const tradeFeed: ChatFeed = {
   }),
   // { success, message, data: { limit, offset, total_records, total_pages }, notifications: ChatListData[] }
   parse: (res) => ({
-    rows: (res.notifications ?? []) as ChatListData[],
+    rows: (res.data?.notifications ?? []) as ChatListData[],
     total: res.data?.total_records,
   }),
 };

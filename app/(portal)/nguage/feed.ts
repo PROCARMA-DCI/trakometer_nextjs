@@ -13,6 +13,9 @@ export const nguageFeed: ChatFeed = {
     dealer_title: "",
     SearchCustomer: search,
   }),
-  // { success, message, pagination: { limit, offset, returned_records }, data: ChatListData[] }
-  parse: (res) => ({ rows: (res.data ?? []) as ChatListData[] }),
+
+  parse: (res) => ({
+    rows: (res.data ?? []) as ChatListData[],
+    pagination: { ...res.pagination, total: res.pagination.returned_records },
+  }),
 };

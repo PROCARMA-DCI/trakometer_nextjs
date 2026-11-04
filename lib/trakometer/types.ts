@@ -131,8 +131,8 @@ export interface ChatListData {
   threadid: string;
   message_id: string;
   User1Image: string;
-  user1Name: string;
-  User2Name: string;
+  user1Name: string | null;
+  User2Name: string | null;
   message: string;
   ContractNo: string;
   /** "YYYY-MM-DD HH:mm:ss" */
@@ -172,6 +172,7 @@ export interface AppRating {
 export interface Pagination {
   limit: number;
   offset: number;
+  total: number;
 }
 
 export interface ChatMessage {

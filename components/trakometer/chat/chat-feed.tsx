@@ -5,6 +5,7 @@ import { fetching } from "@/lib/api/client";
 import type {
   ChannelId,
   ChatListData,
+  Pagination,
   RangeKey,
 } from "@/lib/trakometer/types";
 import {
@@ -29,7 +30,10 @@ export interface ChatFeed {
   }) => Record<string, unknown>;
   /** `total` = all records when the API reports it; otherwise a full page implies "more". */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parse: (res: Record<string, any>) => { rows: ChatListData[]; total?: number };
+  parse: (res: Record<string, any>) => {
+    rows: ChatListData[];
+    pagination: Pagination;
+  };
 }
 
 export const PAGE_SIZE = 20;
@@ -38,6 +42,8 @@ export interface Pager {
   page: number; // 0-based
   pageSize: number;
   total: number | null;
+  limit: number | null;
+  offset: number | null;
   hasNext: boolean;
   onPage: (page: number) => void;
 }
@@ -71,6 +77,8 @@ export function ChatFeedProvider({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [limit, setLimit] = useState(PAGE_SIZE);
+  const [offset, setOffset] = useState(0);
 
   // A new range / search starts again from page 1.
   const filterKey = `${range}|${searchTerm}`;
@@ -110,7 +118,9 @@ export function ChatFeedProvider({
       const parsed = parse(res);
       setError(null);
       setRows(parsed.rows);
-      setTotal(parsed.total ?? null);
+      setTotal(parsed?.pagination?.total ?? null);
+      setLimit(parsed?.pagination?.limit ?? PAGE_SIZE);
+      setOffset(parsed?.pagination?.offset ?? 0);
     })();
     return () => {
       cancelled = true;
@@ -127,8 +137,10 @@ export function ChatFeedProvider({
         error,
         pager: {
           page,
-          pageSize: PAGE_SIZE,
+          pageSize: limit ?? PAGE_SIZE,
           total,
+          limit,
+          offset,
           hasNext:
             total !== null
               ? (page + 1) * PAGE_SIZE < total
