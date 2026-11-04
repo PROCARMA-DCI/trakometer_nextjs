@@ -102,6 +102,9 @@ export default function ConversationList({
                 // selected?.threadid == t.threadid ? "bg-primary/5" : "",
               )}
             >
+              <span className="w-6 shrink-0 self-center text-right text-xs tabular-nums text-muted-foreground">
+                {(offset ?? page * pageSize) + index + 1}
+              </span>
               <span className="flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold bg-primary">
                 {t?.user1Name?.charAt(0).toUpperCase()}
               </span>
