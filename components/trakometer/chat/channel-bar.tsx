@@ -1,13 +1,11 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CHANNELS } from "@/lib/trakometer/data";
 import type { AlertFilter, ChannelId } from "@/lib/trakometer/types";
 import { cn } from "@/lib/utils";
 import {
   BellDot,
-  BellOff,
   BellRing,
   CalendarClock,
   Car,
@@ -30,7 +28,7 @@ const CHANNEL_ICONS: Record<
 
   anon: EyeOff,
   kanopi: MessagesSquare,
-  notif: BellDot,
+  notification: BellDot,
 };
 
 const ALERTS: {
@@ -85,34 +83,9 @@ export default function ChannelBar({
           >
             <Icon className="size-3.5" />
             {c.label}
-            {c.count !== undefined && (
-              <Badge
-                variant={c.count > 0 ? "destructive" : "secondary"}
-                className="h-4 min-w-4 px-1 text-[10px]"
-              >
-                {c.count}
-              </Badge>
-            )}
           </button>
         );
       })}
-      <button
-        onClick={onPush}
-        aria-pressed={push}
-        className={cn(
-          "inline-flex items-center gap-1.5 rounded-full border border-dashed px-2.5 py-1.5 text-xs font-medium transition-colors",
-          push
-            ? "border-primary text-primary"
-            : "text-muted-foreground hover:text-foreground",
-        )}
-      >
-        {push ? (
-          <BellRing className="size-3.5" />
-        ) : (
-          <BellOff className="size-3.5" />
-        )}
-        {push ? "Push on" : "Enable push"}
-      </button>
 
       <div className="flex-1" />
 

@@ -1,9 +1,5 @@
 // MOCK DATA — replace with real API calls once the backend is ready.
-import type {
-  ChannelId,
-  Dealer,
-  FeedItem,
-} from "./types";
+import type { ChannelId, Dealer, FeedItem } from "./types";
 
 export const TILES: [string, number, number][] = [
   ["AK", 1, 1],
@@ -189,16 +185,19 @@ export const CANNED = [
 export const CHANNELS: {
   id: ChannelId;
   label: string;
-  count?: number;
   link: string;
 }[] = [
   { id: "ngauge", label: "N-Gauge", link: "/nguage" },
   { id: "trade", label: "Value My Trade", link: "/trade" },
   { id: "service", label: "Service Plus", link: "/service" },
 
-  { id: "anon", label: "Anonymous", count: 0, link: "/anon" },
-  { id: "kanopi", label: "Kanopi", count: 66, link: "/kanopi" },
-  { id: "notif", label: "Notifications", count: 3, link: "/notif" },
+  { id: "anon", label: "Anonymous", link: "/anon" },
+  { id: "kanopi", label: "Kanopi", link: "/kanopi" },
+  {
+    id: "notification",
+    label: "Notifications",
+    link: "/notification",
+  },
 ];
 
 export const AGENT = { name: "AIZAH AWAIS", initials: "AA" };

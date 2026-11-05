@@ -44,7 +44,7 @@ export type ChannelId =
   | "service"
   | "anon"
   | "kanopi"
-  | "notif";
+  | "notification";
 export type AlertFilter = "star" | "new" | "flag" | null;
 export type ThreadMode = "reply" | "full";
 
@@ -189,6 +189,7 @@ export interface ChatMessage {
   User2Image: string;
   message: string;
   User1Phone: string;
+  icons: ChatListIcon;
   /** "YYYY-MM-DD HH:mm:ss" */
   timestamp: string;
   title: string;
@@ -199,6 +200,7 @@ export interface ChatMessage {
   message_time: string;
   sender_type: "admin" | "customer";
   favourite: 0 | 1;
+  flag: 0 | 1;
 }
 
 export interface ReplyLoadThreadMessage {

@@ -87,6 +87,44 @@ export async function sendAppRating(contractNo: string, IsGuest: boolean) {
   };
 }
 
+export async function updateParticularMessage(
+  message_id: string,
+  message_text: string,
+) {
+  const res = await fetching({
+    url: `${BASE}/updateParticularMessage`,
+    body: { message_id, message_text },
+  });
+  return {
+    ok: res.ok && res.success !== false,
+    error: res.message as string | undefined,
+  };
+}
+
+export async function deleteParticularMessage(message_id: string) {
+  const res = await fetching({
+    url: `${BASE}/deleteParticularMessage`,
+    body: { message_id },
+  });
+  return {
+    ok: res.ok && res.success !== false,
+    error: res.message as string | undefined,
+  };
+}
+
+export async function setMessageFlag(message_id: string, flag: 0 | 1) {
+  const res = await fetching({
+    url: `${BASE}/setflagNotifications`,
+    body: { message_id, flag },
+  });
+  return {
+    ok: res.ok && res.success !== false,
+    message: res.message as string | undefined,
+    error: res.message as string | undefined,
+    data: res.data,
+  };
+}
+
 export async function makeMessageFavorite(message_id: string, fav: 0 | 1) {
   const res = await fetching({
     url: `${BASE}/favoritemessage`,

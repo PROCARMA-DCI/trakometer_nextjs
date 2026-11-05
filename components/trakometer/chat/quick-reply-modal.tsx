@@ -11,9 +11,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 import {
+  deleteParticularMessage,
   makeMessageFavorite,
   sendAppRating,
   sendThreadReply,
+  updateParticularMessage,
 } from "@/lib/trakometer/chat-api";
 import type {
   ChatListData,
@@ -26,10 +28,12 @@ import {
   BellRing,
   Clock,
   Monitor,
+  Pencil,
   Phone,
   Send,
   Smartphone,
   Star,
+  Trash,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -52,7 +56,15 @@ const initials = (name: string) =>
     .join("")
     .toUpperCase();
 
-function Bubble({ m, mine }: { m: ChatMessage; mine: boolean }) {
+function Bubble({
+  m,
+  mine,
+  onChanged,
+}: {
+  m: ChatMessage;
+  mine: boolean;
+  onChanged: () => void;
+}) {
   const name = m.user1Name;
   const image = m.User1Image;
 
@@ -68,6 +80,32 @@ function Bubble({ m, mine }: { m: ChatMessage; mine: boolean }) {
     }
     setFavourite(res.data?.favourite ?? m.favourite);
   };
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const saveEdit = async () => {
+    setBusy(true);
+    const res = await updateParticularMessage(m.message_id, editText.trim());
+    setBusy(false);
+    if (!res.ok) return toast.error(res.error ?? "Could not edit the message.");
+    toast.success("Message updated.");
+    setEditing(false);
+    onChanged();
+  };
+
+  const removeMessage = async () => {
+    if (!window.confirm("Delete this message?")) return;
+    setBusy(true);
+    const res = await deleteParticularMessage(m.message_id);
+    setBusy(false);
+    if (!res.ok) {
+      return toast.error(res.error ?? "Could not delete the message.");
+    }
+    toast.success("Message deleted.");
+    onChanged();
+  };
+
   return (
     <div className={cn("flex items-end gap-2.5", mine && "flex-row-reverse")}>
       <Avatar className="size-8">
@@ -99,7 +137,7 @@ function Bubble({ m, mine }: { m: ChatMessage; mine: boolean }) {
             </span>
           </div>
         </div>
-        {m.message && (
+        {m.message && !editing && (
           <div
             className="break-words text-sm [&_a]:text-primary [&_a]:underline"
             dangerouslySetInnerHTML={{ __html: m.message }}
@@ -113,9 +151,65 @@ function Bubble({ m, mine }: { m: ChatMessage; mine: boolean }) {
             className="max-h-48 w-fit rounded-lg border"
           />
         )}
-        <div className="flex items-center gap-1.5 text-[11px] font-bold">
-          <strong>TEL</strong> <Phone className="size-3" />: {m.User1Phone}
+        <div className="w-full justify-between flex ">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold">
+            {" "}
+            <strong>TEL</strong> <Phone className="size-3" />: {m.User1Phone}
+          </div>
+          {mine && !editing && (
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={() => {
+                  setEditText(m.message);
+                  setEditing(true);
+                }}
+              >
+                <Pencil className="size-3" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                disabled={busy}
+                onClick={removeMessage}
+              >
+                <Trash className="size-3" />
+              </Button>
+            </div>
+          )}
         </div>
+        {editing && (
+          <div className="flex flex-col gap-2">
+            <Textarea
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              rows={3}
+              autoFocus
+              className="bg-background"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={() => setEditing(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                size="xs"
+                disabled={!editText.trim() || busy}
+                onClick={saveEdit}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        )}
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <DeviceIcon className="size-3" />
         </div>
@@ -179,7 +273,12 @@ export default function QuickReplyModal({
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-muted/30 px-5 py-4">
           {messages.map((m) => (
-            <Bubble key={m.message_id} m={m} mine={m.sender_type === "admin"} />
+            <Bubble
+              key={m.message_id}
+              m={m}
+              mine={m.sender_type === "admin"}
+              onChanged={onSent}
+            />
           ))}
           <div ref={endRef} />
         </div>

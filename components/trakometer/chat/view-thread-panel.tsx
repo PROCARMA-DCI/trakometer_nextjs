@@ -7,6 +7,7 @@ import {
   makeMessageFavorite,
   sendAppRating,
   sendThreadReply,
+  setMessageFlag,
 } from "@/lib/trakometer/chat-api";
 import type {
   ChatListData,
@@ -17,7 +18,9 @@ import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
   Clock,
+  Flag,
   Monitor,
+  Phone,
   Reply,
   Send,
   Smartphone,
@@ -152,13 +155,21 @@ function ViewBubble({
 }) {
   const DeviceIcon = m.device_type === "mobile" ? Smartphone : Monitor;
   const name = m.user1Name;
-  const [toggled, setFavourite] = useState<0 | 1>(m.favourite);
+  const [favToggled, setFavourite] = useState<0 | 1>(m.favourite);
+  const [flagToggled, setFlag] = useState<0 | 1>(m.flag);
   const loadMessageFavorite = async () => {
-    const res = await makeMessageFavorite(m.message_id, toggled);
+    const res = await makeMessageFavorite(m.message_id, favToggled);
     if (!res.ok) {
       return toast.error(res.error ?? "Could not update the favourite.");
     }
     setFavourite(res.data?.favourite ?? m.favourite);
+  };
+  const loadMessageFlag = async () => {
+    const res = await setMessageFlag(m.message_id, flagToggled);
+    if (!res.ok) {
+      return toast.error(res.error ?? "Could not update the flag.");
+    }
+    setFlag(res.data?.flag ?? m.flag);
   };
 
   return (
@@ -170,7 +181,9 @@ function ViewBubble({
       <div
         className={cn(
           "flex min-w-0 flex-1 flex-col gap-1.5 rounded-md border-2 bg-card px-3.5 py-2.5",
-          mine ? "border-red-400" : "border-emerald-500",
+          mine
+            ? "border-primary/50 bg-primary/10"
+            : "border-emerald-500/50 bg-card",
         )}
       >
         <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
@@ -191,22 +204,17 @@ function ViewBubble({
                 {m.User2Name}
               </span>
             )}
-            {!mine && canReply && (
-              <Button
-                type="button"
-                variant="outline"
-                size="xs"
-                onClick={onReply}
-              >
-                <Reply className="size-3" />
-                Reply
-              </Button>
-            )}
+            <span
+              className="w-full flex justify-end cursor-pointer"
+              onClick={loadMessageFlag}
+            >
+              <Flag size={20} fill={flagToggled ? "red" : "none"} />
+            </span>
             <span
               className="w-full flex justify-end cursor-pointer"
               onClick={loadMessageFavorite}
             >
-              <Star size={20} fill={toggled ? "orange" : "none"} />
+              <Star size={20} fill={favToggled ? "orange" : "none"} />
             </span>
           </div>
         </div>
@@ -224,6 +232,18 @@ function ViewBubble({
             className="max-h-48 w-fit rounded-lg border"
           />
         )}
+        <div className="w-full justify-between flex ">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold">
+            {" "}
+            <strong>TEL</strong> <Phone className="size-3" />: {m.User1Phone}
+          </div>
+          {!mine && canReply && (
+            <Button type="button" variant="outline" size="xs" onClick={onReply}>
+              <Reply className="size-3" />
+              Reply
+            </Button>
+          )}
+        </div>
         {replying && (
           <ReplyBox
             thread={thread}
