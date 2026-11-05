@@ -60,10 +60,18 @@ function Bubble({
   m,
   mine,
   onChanged,
+  editing,
+  anyEditing,
+  setEditing,
 }: {
   m: ChatMessage;
   mine: boolean;
   onChanged: () => void;
+  /** This bubble is the one being edited. */
+  editing: boolean;
+  /** Some bubble is being edited, so hide edit/delete everywhere else. */
+  anyEditing: boolean;
+  setEditing: (editing: boolean) => void;
 }) {
   const name = m.user1Name;
   const image = m.User1Image;
@@ -80,7 +88,6 @@ function Bubble({
     }
     setFavourite(res.data?.favourite ?? m.favourite);
   };
-  const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -156,7 +163,7 @@ function Bubble({
             {" "}
             <strong>TEL</strong> <Phone className="size-3" />: {m.User1Phone}
           </div>
-          {mine && !editing && (
+          {mine && !anyEditing && (
             <div className="flex items-center gap-1">
               <Button
                 type="button"
@@ -188,6 +195,10 @@ function Bubble({
               onChange={(e) => setEditText(e.target.value)}
               rows={3}
               autoFocus
+              onFocus={(e) => {
+                const end = e.currentTarget.value.length;
+                e.currentTarget.setSelectionRange(end, end);
+              }}
               className="bg-background"
             />
             <div className="flex justify-end gap-2">
@@ -225,6 +236,7 @@ export default function QuickReplyModal({
   onClose,
   onSent,
 }: Props) {
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [sms, setSms] = useState(false);
   const [email, setEmail] = useState(true);
@@ -264,6 +276,7 @@ export default function QuickReplyModal({
         <DialogHeader className="border-b px-5 py-4">
           <DialogTitle className="flex items-center gap-2">
             <BellRing className="size-4 text-primary" />
+            <span className=" font-semibold">{thread?.DealerTitle}</span>{" "}
             Notification
             <span className="text-xs font-normal text-muted-foreground">
               {thread.ContractNo}
@@ -278,6 +291,9 @@ export default function QuickReplyModal({
               m={m}
               mine={m.sender_type === "admin"}
               onChanged={onSent}
+              editing={editingId === m.message_id}
+              anyEditing={editingId !== null}
+              setEditing={(on) => setEditingId(on ? m.message_id : null)}
             />
           ))}
           <div ref={endRef} />
