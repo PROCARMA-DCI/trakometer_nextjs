@@ -16,6 +16,6 @@ export const nguageFeed: ChatFeed = {
 
   parse: (res) => ({
     rows: (res.data ?? []) as ChatListData[],
-    pagination: { ...res.pagination, total: res.pagination.returned_records },
+    pagination: { ...res.pagination, total: res.pagination.total_records },
   }),
 };

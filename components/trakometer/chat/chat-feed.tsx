@@ -47,6 +47,8 @@ export interface Pager {
   offset: number | null;
   hasNext: boolean;
   onPage: (page: number) => void;
+  /** Infinite scroll: fetch the next page and append it. */
+  onLoadMore: () => void;
 }
 
 interface FeedCtx {
@@ -133,7 +135,8 @@ export function ChatFeedProvider({
       }
       const parsed = parse(res);
       setError(null);
-      setRows(parsed.rows);
+      // First page replaces the list; later pages are appended (infinite scroll).
+      setRows((prev) => (page === 0 ? parsed.rows : [...prev, ...parsed.rows]));
       setTotal(parsed?.pagination?.total ?? null);
       setLimit(parsed?.pagination?.limit ?? PAGE_SIZE);
       setOffset(parsed?.pagination?.offset ?? 0);
@@ -141,9 +144,14 @@ export function ChatFeedProvider({
     return () => {
       cancelled = true;
     };
-  }, [url, body, parse, reloadKey, unauthorized]);
+    // `page` changes together with `body` (offset), so it never fires on its own.
+  }, [url, body, page, parse, reloadKey, unauthorized]);
 
-  const reload = useCallback(() => setReloadKey((k) => k + 1), []);
+  // Refresh starts again from the first page.
+  const reload = useCallback(() => {
+    setPageState((s) => ({ ...s, page: 0 }));
+    setReloadKey((k) => k + 1);
+  }, []);
 
   return (
     <Ctx.Provider
@@ -160,8 +168,10 @@ export function ChatFeedProvider({
           hasNext:
             total !== null
               ? (page + 1) * PAGE_SIZE < total
-              : rows.length >= PAGE_SIZE,
+              : rows.length >= (page + 1) * PAGE_SIZE,
           onPage: (p) => setPageState({ key: filterKey, page: p }),
+          onLoadMore: () =>
+            setPageState({ key: filterKey, page: page + 1 }),
         },
       }}
     >
