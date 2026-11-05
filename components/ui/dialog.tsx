@@ -90,6 +90,16 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+function DialogBody({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="dialog-body"
+      className={cn("max-h-[70vh] overflow-y-auto", className)}
+      {...props}
+    />
+  )
+}
+
 function DialogFooter({
   className,
   showCloseButton = false,
@@ -148,6 +158,7 @@ function DialogDescription({
 
 export {
   Dialog,
+  DialogBody,
   DialogClose,
   DialogContent,
   DialogDescription,

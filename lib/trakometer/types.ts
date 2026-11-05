@@ -208,3 +208,21 @@ export interface ReplyLoadThreadMessage {
   message: string;
   data: SpecificThreadChat;
 }
+
+export interface ServicePlanList {
+  ScheduleServiceID: number;
+  ContractNo: string;
+  thread_id: string;
+  /** "YYYY-MM-DD HH:mm:ss" */
+  ScheduleDateTime: string;
+  /** "YYYY-MM-DD HH:mm:ss", null when nothing was suggested. */
+  SuggestedDateTime: string | null;
+  /** "YYYY-MM-DD HH:mm:ss" */
+  CreatedDate: string;
+  CustomerName: string;
+  ScheduleStatus: number;
+  can_take_action: boolean;
+  /** Element shape unknown: the sample response was an empty array. */
+  action_icons: string[];
+  action_label: string | null;
+}

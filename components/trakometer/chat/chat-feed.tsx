@@ -20,7 +20,7 @@ import {
 import ChatLayout from "./ChatLayout";
 
 /** What differs between chat channels: which API to call and how to read its answer. */
-export interface ChatFeed {
+export interface ChatFeed<T = ChatListData> {
   channel: ChannelId;
   url: string;
   body: (p: {
@@ -32,7 +32,7 @@ export interface ChatFeed {
   /** `total` = all records when the API reports it; otherwise a full page implies "more". */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parse: (res: Record<string, any>) => {
-    rows: ChatListData[];
+    rows: T[];
     pagination: Pagination;
   };
 }
@@ -51,31 +51,33 @@ export interface Pager {
   onLoadMore: () => void;
 }
 
-interface FeedCtx {
-  rows: ChatListData[];
+interface FeedCtx<T = ChatListData> {
+  rows: T[];
   pager: Pager;
   loading: boolean;
   error: string | null;
 }
 
-const Ctx = createContext<FeedCtx | null>(null);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Ctx = createContext<FeedCtx<any> | null>(null);
 
-export function useChatFeed() {
+/** `T` is the row type of the feed (ChatListData unless the channel says otherwise). */
+export function useChatFeed<T = ChatListData>() {
   const c = useContext(Ctx);
   if (!c) throw new Error("useChatFeed must be used inside <ChatFeedProvider>");
-  return c;
+  return c as FeedCtx<T>;
 }
 
 /** Loads a channel's list, owns refresh, and wraps the page in the shared chat layout. */
-export function ChatFeedProvider({
+export function ChatFeedProvider<T = ChatListData>({
   feed,
   children,
 }: {
-  feed: ChatFeed;
+  feed: ChatFeed<T>;
   children: ReactNode;
 }) {
   const { range, searchTerm, unauthorized } = usePortal();
-  const [rows, setRows] = useState<ChatListData[]>([]);
+  const [rows, setRows] = useState<T[]>([]);
   const [total, setTotal] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -121,6 +123,7 @@ export function ChatFeedProvider({
         };
       }
       const res = await inflight.current.promise;
+
       if (cancelled) return;
       setLoading(false);
       if (res.status === 401 || res.status === 403) {
@@ -170,8 +173,7 @@ export function ChatFeedProvider({
               ? (page + 1) * PAGE_SIZE < total
               : rows.length >= (page + 1) * PAGE_SIZE,
           onPage: (p) => setPageState({ key: filterKey, page: p }),
-          onLoadMore: () =>
-            setPageState({ key: filterKey, page: page + 1 }),
+          onLoadMore: () => setPageState({ key: filterKey, page: page + 1 }),
         },
       }}
     >
