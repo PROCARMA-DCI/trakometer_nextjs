@@ -87,8 +87,16 @@ export function ChatFeedProvider<T = ChatListData>({
 
   // A new range / search starts again from page 1.
   const filterKey = `${range}|${searchTerm}`;
-  const [pageState, setPageState] = useState({ key: filterKey, page: 0 });
-  const page = pageState.key === filterKey ? pageState.page : 0;
+  // `from` = first page of the loaded window, `page` = last loaded page. A page
+  // jump starts a new window at that page; scrolling appends the pages after it.
+  const [pageState, setPageState] = useState({
+    key: filterKey,
+    page: 0,
+    from: 0,
+  });
+  const current = pageState.key === filterKey;
+  const page = current ? pageState.page : 0;
+  const from = current ? pageState.from : 0;
 
   // Refetch only when the request itself changes (a feed that ignores search won't refire on typing).
   const body = JSON.stringify(
@@ -138,8 +146,10 @@ export function ChatFeedProvider<T = ChatListData>({
       }
       const parsed = parse(res);
       setError(null);
-      // First page replaces the list; later pages are appended (infinite scroll).
-      setRows((prev) => (page === 0 ? parsed.rows : [...prev, ...parsed.rows]));
+      // The window's first page replaces the list; later pages are appended (infinite scroll).
+      setRows((prev) =>
+        page === from ? parsed.rows : [...prev, ...parsed.rows],
+      );
       setTotal(parsed?.pagination?.total ?? null);
       setLimit(parsed?.pagination?.limit ?? PAGE_SIZE);
       setOffset(parsed?.pagination?.offset ?? 0);
@@ -147,14 +157,16 @@ export function ChatFeedProvider<T = ChatListData>({
     return () => {
       cancelled = true;
     };
-    // `page` changes together with `body` (offset), so it never fires on its own.
+    // `page` changes together with `body` (offset), so it never fires on its own;
+    // `from` only changes together with `page`, so it is read but not a trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url, body, page, parse, reloadKey, unauthorized]);
 
   // Refresh starts again from the first page.
   const reload = useCallback(() => {
-    setPageState((s) => ({ ...s, page: 0 }));
+    setPageState({ key: filterKey, page: 0, from: 0 });
     setReloadKey((k) => k + 1);
-  }, []);
+  }, [filterKey]);
 
   return (
     <Ctx.Provider
@@ -172,8 +184,13 @@ export function ChatFeedProvider<T = ChatListData>({
             total !== null
               ? (page + 1) * PAGE_SIZE < total
               : rows.length >= (page + 1) * PAGE_SIZE,
-          onPage: (p) => setPageState({ key: filterKey, page: p }),
-          onLoadMore: () => setPageState({ key: filterKey, page: page + 1 }),
+          // Jump: reload from page `p` (0-based) and continue from there on scroll.
+          onPage: (p) => {
+            if (p === page) return;
+            setPageState({ key: filterKey, page: p, from: p });
+          },
+          onLoadMore: () =>
+            setPageState({ key: filterKey, page: page + 1, from }),
         },
       }}
     >

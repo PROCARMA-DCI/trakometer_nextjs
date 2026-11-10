@@ -65,7 +65,7 @@ const ChatLayout = ({
         setThreadOpen,
       }}
     >
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4">
+      <div className="flex min-h-0 flex-1 flex-col  px-4">
         <div className={threadOpen ? "hidden md:block" : undefined}>
           <ChannelBar
             channel={channel}
@@ -88,7 +88,10 @@ const ChatLayout = ({
             until you switch back online.
           </div>
         )}
-        {children}
+        {/* Scroll area for the page body. Screens that manage their own
+            scrolling (ChatScreen: `min-h-0 flex-1`) shrink to fit and never
+            trigger this; plain content pages (tables) scroll here. */}
+        <div className="flex min-h-0 flex-1 flex-col ">{children}</div>
       </div>
     </Ctx.Provider>
   );

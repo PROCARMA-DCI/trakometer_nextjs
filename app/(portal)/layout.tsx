@@ -10,7 +10,11 @@ export default function PortalLayout({
     <PortalProvider>
       <div className="flex h-dvh flex-col overflow-hidden bg-muted/30">
         <TopBar />
-        <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        {/* overflow-auto (not hidden): pages that don't own a scroller (tables,
+            forms) scroll here automatically. Chat/overview screens use
+            `min-h-0 flex-1` + their own scrollers, so they shrink to fit and
+            never trigger this one. */}
+        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           {children}
         </main>
       </div>
