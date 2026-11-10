@@ -72,7 +72,7 @@ export default function Page() {
   const { rows, loading, error, pager } = useChatFeed<ServicePlanList>();
 
   return (
-    <div className="scroll-whatsapp min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
+    <div className=" min-h-0 flex-1  p-3 sm:p-4">
       <InfiniteScroll
         hasMore={pager.hasNext}
         loading={loading}

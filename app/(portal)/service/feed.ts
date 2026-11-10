@@ -7,7 +7,7 @@ export const chatFeed: ChatFeed<ServicePlanList> = {
   body: ({ range, limit, search, offset }) => ({
     limit,
     offset,
-    fixed_parameter: range,
+    FixedDateParaMeter: range,
     dealer_title: search,
   }),
   // { success, message, data: { limit, offset, total_records, total_pages }, notifications: ChatListData[] }
