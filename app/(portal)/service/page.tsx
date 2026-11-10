@@ -178,7 +178,8 @@ export default function Page() {
               topRef.current?.scrollIntoView({ block: "start" });
             }}
           />
-          <Table.Header className="min-w-0  p-2 font-semibold">
+          <Table.Header className="min-w-0  p-2 font-semibold flex items-center">
+            <Table.Density />
             <Table.FullScreen />
           </Table.Header>
         </div>

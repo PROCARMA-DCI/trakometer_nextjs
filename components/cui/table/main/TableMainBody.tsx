@@ -1,16 +1,15 @@
 "use client";
 import React, { useCallback, useState } from "react";
 
-
-import { Checkbox } from "../../../ui/checkbox";
-import useDivDimensions from "../../../../hooks/useDivDimensions";
-import { cn } from "@/lib/utils";
 import { ClassNameType } from "@/lib/common_types";
 import {
   ColumnType,
   ExpandingTableType,
   TableMainClassesType,
 } from "@/lib/table_types";
+import { cn } from "@/lib/utils";
+import useDivDimensions from "../../../../hooks/useDivDimensions";
+import { Checkbox } from "../../../ui/checkbox";
 import {
   ExtendableArrow,
   ExtentableContent,
@@ -57,7 +56,7 @@ const TableMainBody = ({
   trHeadClass,
   tHeadClass,
   thHeadClass,
-  tableInsideClass = "border border-card-foreground/10 shadow-sm shadow-accent text-[0.9em] text-left p-3",
+  tableInsideClass,
   tBodyClass,
   trBodyClass,
   tdBodyClass,
@@ -79,14 +78,12 @@ const TableMainBody = ({
 
   const TableHead = () => (
     <thead className={cn(`border-none `, `${tHeadClass} `)}>
-      <tr
-        className={cn(`z-10  sticky top-0 bg-accent`, ` ${trHeadClass} `)}
-      >
+      <tr className={cn(`z-10  sticky top-0 bg-accent`, ` ${trHeadClass} `)}>
         {(expandable || multiExpandable) && (
           <th
             className={cn(
               `   select-none`,
-              ` ${tableInsideClass}`,
+              ` ${tableInsideClass} `,
               ` ${thHeadClass} w-10`,
             )}
           ></th>
@@ -143,78 +140,75 @@ const TableMainBody = ({
         </tr>
       ) : (
         data?.map((item, index: number) => {
-        const expanded = isExpandable(
-          openExpandableRow,
-          index,
-          multiExpandable,
-          ExpandingContent,
-        );
-        return (
-          <React.Fragment key={index}>
-            <tr
-              key={index}
-              className={cn(
-                `border-none hover:bg-accent ${striped && index % 2 !== 0 && stripedClass}`,
-                expanded &&
-                  `bg-accent/70 hover:bg-accent/70 [&>td]:border-r-0 [&>td]:border-y-2  [&>td]:border-foreground/50  ${!expanded && `opacity-50`}`,
+          const expanded = isExpandable(
+            openExpandableRow,
+            index,
+            multiExpandable,
+            ExpandingContent,
+          );
+          return (
+            <React.Fragment key={index}>
+              <tr
+                key={index}
+                className={cn(
+                  `border-none hover:bg-accent ${striped && index % 2 !== 0 && stripedClass}`,
+                  expanded &&
+                    `bg-accent/70 hover:bg-accent/70 [&>td]:border-r-0 [&>td]:border-y-2  [&>td]:border-foreground/50  ${!expanded && `opacity-50`}`,
 
-                `${trBodyClass}`,
-              )}
-            >
-              {/* for expenadle td arrow show*/}
+                  `${trBodyClass}`,
+                )}
+              >
+                {/* for expenadle td arrow show*/}
 
-              {(expandable || multiExpandable) &&
-                ExtendableArrow({
-                  setOpenExpandableRow,
-                  index,
-                  openExpandableRow,
-                  multiExpandable,
-                  expandingContent: ExpandingContent,
-                })}
+                {(expandable || multiExpandable) &&
+                  ExtendableArrow({
+                    setOpenExpandableRow,
+                    index,
+                    openExpandableRow,
+                    multiExpandable,
+                    expandingContent: ExpandingContent,
+                  })}
 
-              {/* for selection single td */}
-              {selectedRows && setSelectedRows && (
-                <td
-                  className={cn(
-                    `${tableInsideClass} `,
-                    `  ${tdBodyClass}  `,
-                  )}
-                >
-                  {ToggleRowSelection(
-                    item,
-                    rowId,
-                    selectedRows,
-                    setSelectedRows,
-                  )}
-                </td>
-              )}
-
-              {columns &&
-                columns.length &&
-                columns?.map((column, idx) => (
+                {/* for selection single td */}
+                {selectedRows && setSelectedRows && (
                   <td
-                    key={idx}
-                    className={cn(
-                      `relative p-0 m-0 px-5 overflow-hidden ${tableInsideClass}  whitespace-nowrap`,
-                      ` ${tdBodyClass} ${column?.className} `,
-                    )}
+                    className={cn(`${tableInsideClass} `, `  ${tdBodyClass}  `)}
                   >
-                    {renderCell(item, column, index, data)}
+                    {ToggleRowSelection(
+                      item,
+                      rowId,
+                      selectedRows,
+                      setSelectedRows,
+                    )}
                   </td>
-                ))}
-            </tr>
-            {expanded && (
-              <ExtentableContent
-                index={index}
-                item={item}
-                columns={columns}
-                data={data}
-                ExpandingContent={ExpandingContent}
-                expandableWidth={dimension?.offsetWidth}
-              />
-            )}
-          </React.Fragment>
-        );
+                )}
+
+                {columns &&
+                  columns.length &&
+                  columns?.map((column, idx) => (
+                    <td
+                      key={idx}
+                      className={cn(
+                        `relative p-0 m-0 px-5 overflow-hidden ${tableInsideClass}  whitespace-nowrap`,
+                        ` ${tdBodyClass} ${column?.className} `,
+                      )}
+                    >
+                      {renderCell(item, column, index, data)}
+                    </td>
+                  ))}
+              </tr>
+              {expanded && (
+                <ExtentableContent
+                  index={index}
+                  item={item}
+                  columns={columns}
+                  data={data}
+                  ExpandingContent={ExpandingContent}
+                  expandableWidth={dimension?.offsetWidth}
+                />
+              )}
+            </React.Fragment>
+          );
         })
       )}
     </tbody>
