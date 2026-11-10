@@ -8,12 +8,15 @@ import type { ColumnType } from "@/lib/table_types";
 import type { ServicePlanList } from "@/lib/trakometer/types";
 import { showLongDateTime, showSlashDateTime } from "@/lib/utility";
 import { Check, Eye, X } from "lucide-react";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 
-const columns: ColumnType<ServicePlanList>[] = [
+/** `startIndex` = rows before the first loaded one, so a jump to page 2 numbers from 21. */
+const makeColumns = (startIndex: number): ColumnType<ServicePlanList>[] => [
   {
     title: "#",
-    render: ({ index }) => <span className="tabular-nums">{index + 1}</span>,
+    render: ({ index }) => (
+      <span className="tabular-nums">{startIndex + index + 1}</span>
+    ),
     className: "w-12",
   },
   {
@@ -141,6 +144,10 @@ export default function Page() {
   const { rows, loading, error, pager } = useChatFeed<ServicePlanList>();
 
   const topRef = useRef<HTMLDivElement>(null);
+  const columns = useMemo(
+    () => makeColumns(pager.startIndex),
+    [pager.startIndex],
+  );
   return (
     <div ref={topRef} className="flex-1 lg:p-3 lg:ml-5 ">
       <Table<ServicePlanList>

@@ -45,6 +45,8 @@ export interface Pager {
   total: number | null;
   limit: number | null;
   offset: number | null;
+  /** Zero-based index of the first loaded row overall (page 2 → 20), for row numbering. */
+  startIndex: number;
   hasNext: boolean;
   onPage: (page: number) => void;
   /** Infinite scroll: fetch the next page and append it. */
@@ -84,6 +86,8 @@ export function ChatFeedProvider<T = ChatListData>({
   const [reloadKey, setReloadKey] = useState(0);
   const [limit, setLimit] = useState(PAGE_SIZE);
   const [offset, setOffset] = useState(0);
+  // Set together with the rows (not on click) so numbers don't shift before the data arrives.
+  const [startIndex, setStartIndex] = useState(0);
 
   // A new range / search starts again from page 1.
   const filterKey = `${range}|${searchTerm}`;
@@ -150,6 +154,7 @@ export function ChatFeedProvider<T = ChatListData>({
       setRows((prev) =>
         page === from ? parsed.rows : [...prev, ...parsed.rows],
       );
+      if (page === from) setStartIndex(from * PAGE_SIZE);
       setTotal(parsed?.pagination?.total ?? null);
       setLimit(parsed?.pagination?.limit ?? PAGE_SIZE);
       setOffset(parsed?.pagination?.offset ?? 0);
@@ -180,6 +185,7 @@ export function ChatFeedProvider<T = ChatListData>({
           total,
           limit,
           offset,
+          startIndex,
           hasNext:
             total !== null
               ? (page + 1) * PAGE_SIZE < total
