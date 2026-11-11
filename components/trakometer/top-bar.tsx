@@ -26,7 +26,7 @@ export default function TopBar() {
   const isChats = CHANNELS.some((c) => localPath.startsWith(c.link));
   const base = isEmbedded ? "/test" : "";
 
-  const { range, setRange, search, setSearch, online, setOnline, logout } =
+  const { range, setRange, search, applySearch, online, setOnline, logout } =
     usePortal();
   const [q, setQ] = useState(search);
   const [tz, setTz] = useState("");
@@ -74,7 +74,11 @@ export default function TopBar() {
         {RANGES.map((r) => (
           <button
             key={r}
-            onClick={() => setRange(r)}
+            onClick={() => {
+              setRange(r);
+              // Apply whatever is typed in the search box too, so one click sends both.
+              if (q !== search) applySearch(q);
+            }}
             className={cn(
               "rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground",
               range === r &&
@@ -90,7 +94,7 @@ export default function TopBar() {
         className="relative hidden items-center lg:flex"
         onSubmit={(e) => {
           e.preventDefault();
-          setSearch(q);
+          applySearch(q);
         }}
       >
         <Search className="pointer-events-none absolute left-2.5 size-4 text-muted-foreground" />
@@ -106,7 +110,7 @@ export default function TopBar() {
             title="Clear"
             onClick={() => {
               setQ("");
-              setSearch("");
+              applySearch("");
             }}
             className="absolute right-16 text-muted-foreground hover:text-foreground"
           >

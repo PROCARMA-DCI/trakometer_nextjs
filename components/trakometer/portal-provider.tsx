@@ -27,6 +27,8 @@ interface PortalCtx {
   setRange: (r: RangeKey) => void;
   search: string;
   setSearch: (s: string) => void;
+  /** Set `search` and `searchTerm` together, skipping the debounce (batches with a range change into one request). */
+  applySearch: (s: string) => void;
   /** `search`, debounced — use this for anything sent to the server. */
   searchTerm: string;
   online: boolean;
@@ -70,6 +72,11 @@ export function PortalProvider({ children }: { children: ReactNode }) {
     const t = setTimeout(() => setSearchTerm(search.trim()), 400);
     return () => clearTimeout(t);
   }, [search]);
+
+  const applySearch = (s: string) => {
+    setSearch(s);
+    setSearchTerm(s.trim());
+  };
 
   // 1. Save the token from the URL (guarded: StrictMode runs effects twice).
   const booted = useRef(false);
@@ -155,6 +162,7 @@ export function PortalProvider({ children }: { children: ReactNode }) {
         setRange,
         search,
         setSearch,
+        applySearch,
         searchTerm,
         online,
         setOnline,
