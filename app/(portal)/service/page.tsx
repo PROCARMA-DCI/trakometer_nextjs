@@ -8,10 +8,16 @@ import type { ColumnType } from "@/lib/table_types";
 import type { ServicePlanList } from "@/lib/trakometer/types";
 import { showLongDateTime, showSlashDateTime } from "@/lib/utility";
 import { Check, Eye, X } from "lucide-react";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
+import { viewScheduleService } from "@/lib/trakometer/chat-api";
+import type { ScheduleServiceDetail } from "@/lib/trakometer/types";
+import { ServiceDetailSheet } from "./service-detail-sheet";
 
 /** `startIndex` = rows before the first loaded one, so a jump to page 2 numbers from 21. */
-const makeColumns = (startIndex: number): ColumnType<ServicePlanList>[] => [
+const makeColumns = (
+  startIndex: number,
+  onView: (row: ServicePlanList) => void,
+): ColumnType<ServicePlanList>[] => [
   {
     title: "#",
     render: ({ index }) => (
@@ -23,10 +29,14 @@ const makeColumns = (startIndex: number): ColumnType<ServicePlanList>[] => [
     title: "Requested Date/Time",
     accessor: "ScheduleDateTime",
     render: ({ row }) => (
-      <span className="flex min-w-48 items-start gap-1.5 whitespace-normal text-sky-600">
+      <button
+        type="button"
+        onClick={() => onView(row)}
+        className="flex min-w-48 items-start gap-1.5 whitespace-normal text-left text-sky-600 hover:underline"
+      >
         <Eye className="mt-0.5 size-3.5 shrink-0" />
         {showLongDateTime(row.ScheduleDateTime)}
-      </span>
+      </button>
     ),
   },
   {
@@ -144,8 +154,16 @@ export default function Page() {
   const { rows, loading, error, pager } = useChatFeed<ServicePlanList>();
 
   const topRef = useRef<HTMLDivElement>(null);
+  const [detail, setDetail] = useState<ScheduleServiceDetail | null>(null);
+  const [open, setOpen] = useState(false);
   const columns = useMemo(
-    () => makeColumns(pager.startIndex),
+    () =>
+      makeColumns(pager.startIndex, async (row) => {
+        const d = await viewScheduleService(row.ScheduleServiceID);
+        if (!d) return;
+        setDetail(d);
+        setOpen(true);
+      }),
     [pager.startIndex],
   );
   return (
@@ -180,7 +198,6 @@ export default function Page() {
           />
           <Table.Header className="min-w-0  p-2 font-semibold flex items-center">
             <Table.Density />
-            <Table.FullScreen />
           </Table.Header>
         </div>
         <Table.Body />
@@ -190,6 +207,7 @@ export default function Page() {
           onLoadMore={pager.onLoadMore}
         />
       </Table>
+      <ServiceDetailSheet open={open} onOpenChange={setOpen} detail={detail} />
     </div>
   );
 }

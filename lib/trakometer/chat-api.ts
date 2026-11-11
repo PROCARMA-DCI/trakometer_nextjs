@@ -4,7 +4,12 @@
 import { fetching } from "@/lib/api/client";
 
 import { toast } from "sonner";
-import type { ChatListData, ReplyLoadThreadMessage } from "./types";
+import type {
+  ChatListData,
+  ReplyLoadThreadMessage,
+  ScheduleChatWindow,
+  ScheduleServiceDetail,
+} from "./types";
 
 const BASE = "/api/react/Trakometer";
 
@@ -135,5 +140,70 @@ export async function makeMessageFavorite(message_id: string, fav: 0 | 1) {
     message: res.message as string | undefined,
     error: res.message as string | undefined,
     data: res.data,
+  };
+}
+
+export async function viewScheduleService(
+  scheduleServiceId: number | string,
+): Promise<ScheduleServiceDetail | null> {
+  const res = await fetching({
+    url: `${BASE}/viewScheduleService`,
+    body: { ScheduleServiceID: scheduleServiceId },
+    isFormdata: true,
+  });
+  if (!res.ok || res.success === false) {
+    toast.error(res.message ?? "Could not load the service details.");
+    return null;
+  }
+  return res.data as ScheduleServiceDetail;
+}
+
+/** "View": the current thread only. */
+export async function chatWindow(
+  threadId: string | number,
+): Promise<ScheduleChatWindow | null> {
+  const res = await fetching({
+    url: `${BASE}/chatWindow`,
+    // Backend param spelling is unconfirmed ("theard_id" in the spec), so send both.
+    body: { thread_id: threadId, theard_id: threadId },
+    isFormdata: true,
+  });
+  if (!res.ok || res.success === false) {
+    toast.error(res.message ?? "Could not load the conversation.");
+    return null;
+  }
+  return res.data as ScheduleChatWindow;
+}
+
+/** "Details": the full contract history. */
+export async function chatWindowAll(
+  threadId: string | number,
+  contractNo: string,
+): Promise<ScheduleChatWindow | null> {
+  const res = await fetching({
+    url: `${BASE}/chatWindowAll`,
+    body: { threadid: threadId, ContractNo: contractNo },
+    isFormdata: true,
+  });
+  if (!res.ok || res.success === false) {
+    toast.error(res.message ?? "Could not load the conversation.");
+    return null;
+  }
+  return res.data as ScheduleChatWindow;
+}
+
+export async function replyScheduleChat(p: {
+  message_reply: string;
+  message_reply_id: string | number;
+  message_id: string | number;
+}) {
+  const res = await fetching({
+    url: `${BASE}/reply`,
+    body: p,
+    isFormdata: true,
+  });
+  return {
+    ok: res.ok && res.success !== false,
+    error: res.message as string | undefined,
   };
 }

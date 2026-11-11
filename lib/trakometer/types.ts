@@ -226,3 +226,70 @@ export interface ServicePlanList {
   action_icons: string[];
   action_label: string | null;
 }
+
+/** `viewScheduleService` response (data part). */
+export interface ScheduleServiceDetail {
+  schedule: {
+    ScheduleServiceID: string;
+    ContractID: string;
+    ContractNo: string;
+    thread_id: string;
+    ScheduleDetail: string;
+    ScheduleService: string;
+    DealerID: string;
+    DealerTitle: string;
+    CustomerName: string;
+    ValidityDate: string;
+    ValidityMileage: string;
+    PlanDescription: string;
+    DaysLeft: number;
+    upload_img?: string | null;
+  };
+  chat: {
+    thread_id: string;
+    view_current_chat: boolean;
+    view_all_chat: boolean;
+  };
+  redeemed_services: {
+    total_records: number;
+    message: string | null;
+    records: {
+      CouponTitle: string;
+      RepairOrderNo: string;
+      CouponMileage: string;
+      RecievedDate: string;
+      VehicleType: string;
+      VehicleTypeLabel: string;
+    }[];
+  };
+  remaining_services: {
+    total_records: number;
+    message: string | null;
+    records: { total: string; CouponTitle: string }[];
+  };
+}
+
+/** One message of `chatWindow` / `chatWindowAll`. */
+export interface ScheduleChatMessage {
+  threadid: string;
+  message_id: string;
+  user1Name: string;
+  /** e.g. "Schedule Appointment"; empty for plain replies. */
+  title: string;
+  /** May contain `<br />`. */
+  message: string;
+  User1Image: string | null;
+  User1Phone: string | null;
+  DealerID: string;
+  user2reference: string;
+  timestamp: number;
+  message_date: string;
+  message_time: string;
+}
+
+export interface ScheduleChatWindow {
+  thread_id: number | string;
+  can_reply?: boolean;
+  total_messages?: number;
+  messages: ScheduleChatMessage[];
+}
