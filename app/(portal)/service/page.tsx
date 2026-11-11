@@ -5,12 +5,14 @@ import { PAGE_SIZE, useChatFeed } from "@/components/trakometer/chat/chat-feed";
 import { Spinner } from "@/components/ui/spinner";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import type { ColumnType } from "@/lib/table_types";
-import type { ServicePlanList } from "@/lib/trakometer/types";
+import { viewScheduleService } from "@/lib/trakometer/chat-api";
+import type {
+  ScheduleServiceDetail,
+  ServicePlanList,
+} from "@/lib/trakometer/types";
 import { showLongDateTime, showSlashDateTime } from "@/lib/utility";
 import { Check, Eye, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
-import { viewScheduleService } from "@/lib/trakometer/chat-api";
-import type { ScheduleServiceDetail } from "@/lib/trakometer/types";
 import { ServiceDetailSheet } from "./service-detail-sheet";
 
 /** `startIndex` = rows before the first loaded one, so a jump to page 2 numbers from 21. */
@@ -125,27 +127,31 @@ function PageNav({
   onPage: (page: number) => void;
 }) {
   const { fullScreen } = useTableContext();
+  // Page numbers only make sense when there is more data than one page holds.
+  const hasPages = totalRecords > PAGE_SIZE;
   if (fullScreen)
-    return (
+    return hasPages ? (
       <PaginationNumber
         currentPage={currentPage}
         setCurrentPage={onPage}
         dataLimit={PAGE_SIZE}
         total={totalRecords}
       />
-    );
+    ) : null;
   return (
     <>
       Total: {total}
-      <div className="lg:fixed lg:top-1/2 lg:-translate-y-1/2 lg:left-0  ">
-        <PaginationNumber
-          className="flex lg:flex-col  "
-          currentPage={currentPage}
-          setCurrentPage={onPage}
-          dataLimit={PAGE_SIZE}
-          total={totalRecords}
-        />
-      </div>
+      {hasPages && (
+        <div className="lg:fixed lg:top-1/2 lg:-translate-y-1/2 lg:left-0  ">
+          <PaginationNumber
+            className="flex lg:flex-col  "
+            currentPage={currentPage}
+            setCurrentPage={onPage}
+            dataLimit={PAGE_SIZE}
+            total={totalRecords}
+          />
+        </div>
+      )}
     </>
   );
 }

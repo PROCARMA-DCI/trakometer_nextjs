@@ -13,7 +13,7 @@ import type {
   ScheduleChatWindow,
 } from "@/lib/trakometer/types";
 import { CalendarDays, Clock } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 export type ChatMode = "view" | "all";
@@ -91,6 +91,17 @@ export function ScheduleChatDialog({
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const messages = chat?.messages ?? [];
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Show the newest message (e.g. the reply just sent) whenever the thread loads or grows.
+  useEffect(() => {
+    if (!open) return;
+    const id = requestAnimationFrame(() =>
+      bottomRef.current?.scrollIntoView({ block: "end" }),
+    );
+    return () => cancelAnimationFrame(id);
+  }, [open, messages.length]);
+
   const canReply = mode === "view" && chat?.can_reply !== false;
 
   const send = async () => {
@@ -123,6 +134,7 @@ export function ScheduleChatDialog({
           {messages.map((m) => (
             <Bubble key={m.message_id} m={m} />
           ))}
+          <div ref={bottomRef} />
           {chat && messages.length === 0 && (
             <p className="py-6 text-center text-muted-foreground">
               No messages.
