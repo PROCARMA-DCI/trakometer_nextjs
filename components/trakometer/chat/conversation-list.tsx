@@ -1,6 +1,7 @@
 "use client";
 
 import { InfiniteScroll } from "@/components/cui/InfiniteScroll";
+import { PageNav } from "@/components/cui/PageNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CHANNELS } from "@/lib/trakometer/data";
@@ -19,7 +20,7 @@ import {
   User,
   Video,
 } from "lucide-react";
-import type { MouseEvent } from "react";
+import { useRef, type MouseEvent } from "react";
 import { type Pager } from "./chat-feed";
 
 const DEVICE_ICONS = {
@@ -57,7 +58,7 @@ export default function ConversationList({
   onOpen,
 }: Props) {
   const chName = CHANNELS.find((c) => c.id === channel)?.label;
-  const { total, hasNext, onLoadMore } = pager ?? {
+  const { total, hasNext, onLoadMore, page, pageSize, onPage } = pager ?? {
     total: null,
     limit: 20,
     offset: null,
@@ -65,7 +66,9 @@ export default function ConversationList({
     page: 0,
     pageSize: 20,
     onLoadMore: () => {},
+    onPage: () => {},
   };
+  const scrollRef = useRef<HTMLDivElement>(null);
   const circle = (
     read_status:
       | "grey_circle"
@@ -107,7 +110,7 @@ export default function ConversationList({
           {newestFirst ? "Newest first" : "Oldest first"}
         </button>
       </div>
-      <div className="scroll-whatsapp flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="scroll-whatsapp flex-1 overflow-y-auto">
         <InfiniteScroll
           hasMore={hasNext}
           loading={loading}
@@ -209,6 +212,18 @@ export default function ConversationList({
           </div>
         )}
       </div>
+      <PageNav
+        className="justify-between border-t px-3 py-2"
+        total={total}
+        showTotal={false}
+        orientation="vertical"
+        currentPage={page + 1}
+        pageSize={pageSize}
+        onPage={(p) => {
+          onPage(p - 1);
+          scrollRef.current?.scrollTo({ top: 0 });
+        }}
+      />
     </aside>
   );
 }

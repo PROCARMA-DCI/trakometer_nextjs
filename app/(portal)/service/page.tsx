@@ -1,6 +1,6 @@
 "use client";
 import Table, { useTableContext } from "@/components/cui/table";
-import { PaginationNumber } from "@/components/cui/table/main/Pagination";
+import { PageNav } from "@/components/cui/PageNav";
 import { PAGE_SIZE, useChatFeed } from "@/components/trakometer/chat/chat-feed";
 import { Spinner } from "@/components/ui/spinner";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
@@ -128,46 +128,20 @@ function LoadMore({
   );
 }
 
-/** Page numbers + total. Hidden in fullscreen (read from the Table context, so it must render inside <Table>). */
-function PageNav({
-  total,
-  currentPage,
-  totalRecords,
-  onPage,
-}: {
+/** Hidden total + side rail in fullscreen (read from the Table context, so it must render inside <Table>). */
+function ServicePageNav(props: {
   total: number | null;
   currentPage: number;
-  /** Total record count; the number of pages is derived from it. */
-  totalRecords: number;
   onPage: (page: number) => void;
 }) {
   const { fullScreen } = useTableContext();
-  // Page numbers only make sense when there is more data than one page holds.
-  const hasPages = totalRecords > PAGE_SIZE;
-  if (fullScreen)
-    return hasPages ? (
-      <PaginationNumber
-        currentPage={currentPage}
-        setCurrentPage={onPage}
-        dataLimit={PAGE_SIZE}
-        total={totalRecords}
-      />
-    ) : null;
   return (
-    <>
-      Total: {total}
-      {hasPages && (
-        <div className="lg:fixed lg:top-1/2 lg:-translate-y-1/2 lg:left-0  ">
-          <PaginationNumber
-            className="flex lg:flex-col  "
-            currentPage={currentPage}
-            setCurrentPage={onPage}
-            dataLimit={PAGE_SIZE}
-            total={totalRecords}
-          />
-        </div>
-      )}
-    </>
+    <PageNav
+      {...props}
+      pageSize={PAGE_SIZE}
+      showTotal={!fullScreen}
+      orientation={fullScreen ? "horizontal" : "responsive"}
+    />
   );
 }
 
@@ -208,10 +182,9 @@ export default function Page() {
         }
       >
         <div className="flex items-center justify-between  px-2 py-1.5 relative">
-          <PageNav
-            total={pager.total}
+          <ServicePageNav
+            total={pager.total ?? rows.length}
             currentPage={pager.page + 1}
-            totalRecords={pager.total ?? rows.length}
             onPage={(p) => {
               pager.onPage(p - 1);
               topRef.current?.scrollIntoView({ block: "start" });
