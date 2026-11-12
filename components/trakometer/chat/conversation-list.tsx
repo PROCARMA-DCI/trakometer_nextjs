@@ -91,7 +91,7 @@ export default function ConversationList({
     <aside
       className={cn(
         "w-full shrink-0 flex-col border-r md:flex md:max-w-sm lg:max-w-lg",
-        selected?.threadid !== null ? "hidden" : "flex",
+        selected ? "hidden" : "flex",
       )}
     >
       <div className="flex items-center gap-2 border-b px-3 py-2.5">
@@ -213,10 +213,10 @@ export default function ConversationList({
         )}
       </div>
       <PageNav
-        className="justify-between border-t px-3 py-2"
+        className="bg-muted justify-between border-t px-3 py-2"
         total={total}
         showTotal={false}
-        orientation="vertical"
+        // orientation="vertical"
         currentPage={page + 1}
         pageSize={pageSize}
         onPage={(p) => {

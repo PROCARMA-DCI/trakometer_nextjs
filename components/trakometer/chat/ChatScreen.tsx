@@ -11,8 +11,9 @@ import type {
   SpecificThreadChat,
   ThreadMode,
 } from "@/lib/trakometer/types";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Pager } from "./chat-feed";
+import { useChatUi } from "./ChatLayout";
 import ConversationList from "./conversation-list";
 import QuickReplyModal from "./quick-reply-modal";
 import ViewThreadPanel from "./view-thread-panel";
@@ -42,6 +43,14 @@ const ChatScreen = ({
   const [specificThread, setSpecificThread] =
     useState<SpecificThreadChat | null>(null);
 
+  // On mobile the full conversation replaces the list, so the channel bar steps aside too.
+  const { setThreadOpen } = useChatUi();
+  const fullOpen = mode === "full" && !!selected;
+  useEffect(() => {
+    setThreadOpen(fullOpen);
+    return () => setThreadOpen(false);
+  }, [fullOpen, setThreadOpen]);
+
   const loadMessages = useCallback(async (item: ChatListData) => {
     const r = await replyLoadThreadMessages(item);
     setSpecificThread(r.data);
@@ -68,7 +77,8 @@ const ChatScreen = ({
     <div className="flex min-h-0 flex-1 overflow-hidden">
       <ConversationList
         rows={rows}
-        selected={selected}
+        // The quick-reply dialog floats over the list; only the full thread replaces it on mobile.
+        selected={mode === "full" ? selected : null}
         channel={channel}
         newestFirst={newestFirst}
         loading={loading}

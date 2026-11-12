@@ -65,29 +65,31 @@ export default function ChannelBar({
 }: Props) {
   const router = useRouter();
   return (
-    <div className="flex flex-wrap items-center gap-1.5 border-b bg-background px-3 py-2">
-      {CHANNELS.map((c) => {
-        const Icon = CHANNEL_ICONS[c.id];
-        return (
-          <button
-            key={c.id}
-            onClick={() => {
-              router.push(c.link);
-            }}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-medium transition-colors",
-              channel === c.id
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <Icon className="size-3.5" />
-            {c.label}
-          </button>
-        );
-      })}
+    <div className="flex flex-col gap-1.5 border-b bg-background px-3 py-2 md:flex-row md:flex-wrap md:items-center">
+      <div className="scroll-whatsapp -mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:p-0">
+        {CHANNELS.map((c) => {
+          const Icon = CHANNEL_ICONS[c.id];
+          return (
+            <button
+              key={c.id}
+              onClick={() => {
+                router.push(c.link);
+              }}
+              className={cn(
+                "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-medium transition-colors",
+                channel === c.id
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Icon className="size-3.5" />
+              {c.label}
+            </button>
+          );
+        })}
+      </div>
 
-      <div className="flex-1" />
+      <div className="hidden flex-1 md:block" />
 
       <div className="flex flex-wrap items-center gap-1.5">
         {ALERTS.map((a) => {

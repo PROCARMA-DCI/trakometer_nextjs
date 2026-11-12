@@ -14,7 +14,12 @@ interface Props {
   onSend: (body: string, via: { sms: boolean; email: boolean }) => void;
 }
 
-export default function Composer({ replyTitle, onCancelReply, onAppRating, onSend }: Props) {
+export default function Composer({
+  replyTitle,
+  onCancelReply,
+  onAppRating,
+  onSend,
+}: Props) {
   const [draft, setDraft] = useState("");
   const [sms, setSms] = useState(false);
   const [email, setEmail] = useState(true);
@@ -38,7 +43,11 @@ export default function Composer({ replyTitle, onCancelReply, onAppRating, onSen
         <div className="mb-2 flex items-center gap-1.5 rounded-lg border-l-2 border-primary bg-muted/50 px-2.5 py-1.5 text-xs font-medium text-primary">
           <Reply className="size-3.5 shrink-0" />
           <span className="min-w-0 flex-1 truncate">{replyTitle}</span>
-          <button onClick={onCancelReply} title="Cancel reply" className="text-muted-foreground hover:text-foreground">
+          <button
+            onClick={onCancelReply}
+            title="Cancel reply"
+            className="text-muted-foreground hover:text-foreground"
+          >
             <X className="size-3.5" />
           </button>
         </div>
@@ -78,12 +87,26 @@ export default function Composer({ replyTitle, onCancelReply, onAppRating, onSen
           rows={1}
           className="max-h-32 min-h-10 flex-1 resize-none rounded-2xl bg-background"
         />
-        <Button type="button" size="icon" onClick={send} disabled={!draft.trim()} title="Send" className="rounded-full">
+        <Button
+          type="button"
+          size="icon"
+          onClick={send}
+          disabled={!draft.trim()}
+          title="Send"
+          className="rounded-full"
+        >
           <Send className="size-4" />
         </Button>
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        <Button type="button" variant="ghost" size="xs" title="Canned message" onClick={() => setCanned(!canned)} aria-expanded={canned}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
+          title="Canned message"
+          onClick={() => setCanned(!canned)}
+          aria-expanded={canned}
+        >
           <MessageSquareText className="size-3.5 text-teal-600 dark:text-teal-400" />
           <span className="hidden sm:inline">Canned</span>
         </Button>
@@ -92,7 +115,9 @@ export default function Composer({ replyTitle, onCancelReply, onAppRating, onSen
           variant="ghost"
           size="xs"
           title="Request Google rating"
-          onClick={() => append("We’d love your feedback! Please rate us on Google.")}
+          onClick={() =>
+            append("We’d love your feedback! Please rate us on Google.")
+          }
         >
           <Star className="size-3.5 text-primary" />
           <span className="hidden sm:inline">Google rating</span>
@@ -114,7 +139,9 @@ export default function Composer({ replyTitle, onCancelReply, onAppRating, onSen
           aria-pressed={sms}
           className={cn(
             "rounded-full border px-2.5 py-0.5 text-xs font-medium",
-            sms ? "border-primary bg-primary/10 text-primary" : "text-muted-foreground"
+            sms
+              ? "border-primary bg-primary/10 text-primary"
+              : "text-muted-foreground",
           )}
         >
           SMS
@@ -126,7 +153,7 @@ export default function Composer({ replyTitle, onCancelReply, onAppRating, onSen
             "rounded-full border px-2.5 py-0.5 text-xs font-medium",
             email
               ? "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300"
-              : "text-muted-foreground"
+              : "text-muted-foreground",
           )}
         >
           Email
