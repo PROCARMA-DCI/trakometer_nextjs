@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
 import { CheckSquare, Square, TrendingDown, TrendingUp, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { usePortal } from "../portal-provider";
-import { useDashboard } from "./use-dashboard";
 import DealershipTable from "./dealership-table";
 import NetworkMap from "./network-map";
 import NotificationFeed from "./notification-feed";
+import { useDashboard } from "./use-dashboard";
 
 type Category = DashboardData["trakoCategory"][number];
 
@@ -82,8 +82,8 @@ export default function OverviewScreen() {
   }, [data]);
 
   return (
-    <div className="flex flex-1 flex-wrap items-start gap-4 overflow-auto p-4 lg:flex-nowrap">
-      <Card className="w-full min-w-0 gap-3 py-4 lg:sticky lg:top-0 lg:max-h-[calc(100dvh-7rem)] lg:w-auto lg:flex-1 lg:overflow-y-auto">
+    <div className="flex flex-1 flex-wrap items-start gap-4  p-4 lg:flex-nowrap">
+      <Card className="w-full min-w-0 gap-3 py-4 lg:sticky lg:top-0 lg:max-h-[calc(100dvh-7rem)] lg:w-auto lg:flex-1 ">
         <CardHeader className="flex flex-row flex-wrap items-center gap-2 px-4">
           <h2 className="text-sm font-semibold">Dealership contracts</h2>
           <span className="text-xs text-muted-foreground">
@@ -103,7 +103,7 @@ export default function OverviewScreen() {
           )}
         </CardHeader>
 
-        <CardContent className="flex flex-col gap-3 px-4">
+        <CardContent className="flex min-h-0 flex-1 flex-col gap-3 px-4">
           <div className="flex flex-wrap gap-1.5">
             {categories.map((c, index) => {
               const on = isOn(c);

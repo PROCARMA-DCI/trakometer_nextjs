@@ -11,11 +11,21 @@ import type {
   ServicePlanList,
 } from "@/lib/trakometer/types";
 import { showLongDateTime, showSlashDateTime } from "@/lib/utility";
+import { cn } from "@/lib/utils";
 import { Check, Eye, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { ServiceDetailSheet } from "./service-detail-sheet";
 
 /** `startIndex` = rows before the first loaded one, so a jump to page 2 numbers from 21. */
+
+const actionLabelColor = (
+  label: "Confirmed" | "Cancelled" | "Update Confirmed",
+) => {
+  if (label === "Confirmed") return "bg-green-600/80";
+  if (label === "Cancelled") return "bg-destructive";
+  if (label === "Update Confirmed") return "bg-blue-600/80";
+  return "";
+};
 const makeColumns = (
   startIndex: number,
   onView: (row: ServicePlanList) => void,
@@ -68,7 +78,12 @@ const makeColumns = (
     render: ({ row }) => {
       if (row.action_label) {
         return (
-          <span className="rounded-sm bg-destructive/80 px-1 text-xs text-white">
+          <span
+            className={cn(
+              "rounded-sm px-1 text-xs text-white",
+              actionLabelColor(row?.action_label),
+            )}
+          >
             {row.action_label}
           </span>
         );

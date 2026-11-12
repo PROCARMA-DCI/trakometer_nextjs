@@ -224,7 +224,7 @@ export interface ServicePlanList {
   can_take_action: boolean;
   /** Element shape unknown: the sample response was an empty array. */
   action_icons: string[];
-  action_label: string | null;
+  action_label: "Confirmed" | "Cancelled" | "Update Confirmed";
 }
 
 /** `viewScheduleService` response (data part). */
