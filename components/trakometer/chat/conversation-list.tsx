@@ -57,14 +57,14 @@ export default function ConversationList({
   onOpen,
 }: Props) {
   const chName = CHANNELS.find((c) => c.id === channel)?.label;
-  const { total, hasNext, page, onPage } = pager ?? {
+  const { total, hasNext, onLoadMore } = pager ?? {
     total: null,
     limit: 20,
     offset: null,
     hasNext: false,
     page: 0,
     pageSize: 20,
-    onPage: () => {},
+    onLoadMore: () => {},
   };
   const circle = (
     read_status:
@@ -111,8 +111,7 @@ export default function ConversationList({
         <InfiniteScroll
           hasMore={hasNext}
           loading={loading}
-          onLoadMore={() => onPage(page + 1)}
-          endMessage={null}
+          onLoadMore={onLoadMore}
         >
           {data.map((t, index) => {
             const stop = (fn: () => void) => (e: MouseEvent) => {
