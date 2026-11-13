@@ -276,6 +276,7 @@ export interface ScheduleChatMessage {
   user1Name: string;
   /** e.g. "Schedule Appointment"; empty for plain replies. */
   title: string;
+  attachment_url: string;
   /** May contain `<br />`. */
   message: string;
   User1Image: string | null;
@@ -288,8 +289,28 @@ export interface ScheduleChatMessage {
 }
 
 export interface ScheduleChatWindow {
-  thread_id: number | string;
+  threadid: number | string;
   can_reply?: boolean;
   total_messages?: number;
   messages: ScheduleChatMessage[];
+  is_resolved: boolean;
+}
+
+/** Row of `kanopi_threads` in `kanopiAdminChatsList`. */
+export interface KanopiThread {
+  threadid: number;
+  message_id: number;
+  message: string;
+  user1: string;
+  user1Name: string;
+  User1Phone: string;
+  User1Image: string;
+  /** Unix seconds. */
+  timestamp: number;
+  /** "yes" | "no" */
+  user1read: string;
+  user2read: string;
+  device_type: "desktop" | "mobile" | string;
+  ContractNo: string;
+  kanopi_thread_status: string;
 }

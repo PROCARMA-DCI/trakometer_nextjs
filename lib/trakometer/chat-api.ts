@@ -193,12 +193,12 @@ export async function chatWindowAll(
 }
 
 export async function replyScheduleChat(p: {
-  message_reply: string;
-  message_reply_id: string | number;
-  message_id: string | number;
+  message: string;
+  threadid: string | number;
+  isResolved: number;
 }) {
   const res = await fetching({
-    url: `${BASE}/reply`,
+    url: `${BASE}/kanopiThreadSendMessage`,
     body: p,
     isFormdata: true,
   });
@@ -206,4 +206,27 @@ export async function replyScheduleChat(p: {
     ok: res.ok && res.success !== false,
     error: res.message as string | undefined,
   };
+}
+
+/* ---------------------------------- Kanopi --------------------------------- */
+
+/**
+ * Kanopi thread → the same `ScheduleChatWindow` the service dialog renders.
+ * Unverified: the exact shape of the `kanopiViewThread` answer; the messages
+ * array is looked up under a few likely names.
+ */
+export async function kanopiViewThread(
+  threadId: string | number,
+): Promise<ScheduleChatWindow | null> {
+  const res = await fetching({
+    url: `${BASE}/kanopiViewThread`,
+    body: { threadid: threadId },
+    isFormdata: true,
+  });
+  if (!res.ok || res.success === false) {
+    toast.error(res.message ?? "Could not load the conversation.");
+    return null;
+  }
+  const data = res.data ?? {};
+  return data;
 }

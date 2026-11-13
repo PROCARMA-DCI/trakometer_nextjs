@@ -1,24 +1,19 @@
-export const showDateAndTime = (rawdate: string) => {
-  const date = new Date(rawdate);
+export const showDateAndTime = (timestamp: number | string) => {
+  const date = new Date(Number(timestamp) * 1000);
 
-  // Format to MM-DD-YYYY HH:mm (local time)
-  const formatted = date.toLocaleString("en-US", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true, // 24-hour format
-  });
-
-  // Replace "/" with "-" for your format
-  const final = formatted.replaceAll("/", "-");
-  return final;
+  return date
+    .toLocaleString("en-US", {
+      timeZone: "America/Chicago",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      // second: "2-digit",
+      hour12: true,
+    })
+    .replaceAll("/", "-");
 };
-
-/** Unix timestamp in seconds (e.g. 1755778227) → showDateAndTime format. */
-export const showDateAndTimeFromUnix = (seconds: number | string) =>
-  showDateAndTime(new Date(Number(seconds) * 1000).toISOString());
 
 /** "2026-11-02 09:00:00" → Date (local time; the T makes it parse the same everywhere). */
 const parseLocal = (raw: string) => new Date(raw.replace(" ", "T"));

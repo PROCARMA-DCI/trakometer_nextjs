@@ -1,11 +1,13 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { replyScheduleChat } from "@/lib/trakometer/chat-api";
 import type {
@@ -54,6 +56,14 @@ function Bubble({ m }: { m: ScheduleChatMessage }) {
         <p className="whitespace-pre-wrap break-words text-sm">
           {plain(m.message)}
         </p>
+        {m?.attachment_url && (
+          <img
+            src={m.attachment_url}
+            height={100}
+            width={100}
+            className="cursor-pointer"
+          />
+        )}
         <div className="mt-1 flex flex-wrap items-end justify-between gap-2 text-xs text-sky-500">
           <span>{m.User1Phone ? `Tel : ${m.User1Phone}` : "Tel :"}</span>
           <span className="flex items-center gap-2">
@@ -78,7 +88,7 @@ export function ScheduleChatDialog({
   mode,
   title,
   chat,
-  onReplied,
+  onLoad,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -86,10 +96,19 @@ export function ScheduleChatDialog({
   title: string;
   chat: ScheduleChatWindow | null;
   /** Called after a reply is sent so the caller can reload the thread. */
-  onReplied: () => void;
+  onLoad: () => void;
 }) {
   const [text, setText] = useState("");
+  const [isResolved, setIsResolved] = useState(chat?.is_resolved ? 1 : 0);
   const [sending, setSending] = useState(false);
+
+  // The dialog stays mounted, so re-sync from the API data every time a fresh
+  // chat loads (or the dialog opens) instead of keeping the previous local toggle.
+  const [synced, setSynced] = useState({ open, chat });
+  if (synced.open !== open || synced.chat !== chat) {
+    setSynced({ open, chat });
+    if (open) setIsResolved(chat?.is_resolved ? 1 : 0);
+  }
   const messages = chat?.messages ?? [];
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -111,9 +130,9 @@ export function ScheduleChatDialog({
     setSending(true);
     // Unverified: which ids the backend expects; replying to the latest message.
     const res = await replyScheduleChat({
-      message_reply: message,
-      message_reply_id: chat.thread_id,
-      message_id: chat.thread_id,
+      message,
+      threadid: chat.threadid,
+      isResolved,
     });
     setSending(false);
     if (!res.ok) {
@@ -121,7 +140,7 @@ export function ScheduleChatDialog({
       return;
     }
     setText("");
-    onReplied();
+    onLoad();
   };
 
   return (
@@ -141,8 +160,17 @@ export function ScheduleChatDialog({
             </p>
           )}
         </div>
+        <div className=" border-t pt-3 ">
+          <div className="flex gap-2 items-center bg-muted p-2">
+            <Checkbox
+              checked={isResolved === 1}
+              onCheckedChange={(checked) => setIsResolved(checked ? 1 : 0)}
+            />
+            <Label>Resolved</Label>
+          </div>
+        </div>
         {canReply && (
-          <div className="space-y-2 border-t pt-3">
+          <div className="space-y-2 ">
             <Textarea
               value={text}
               onChange={(e) => setText(e.target.value)}

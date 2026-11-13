@@ -188,7 +188,7 @@ export function ServiceDetailSheet({
             : `Contract No ${s?.ContractNo ?? ""}`
         }
         chat={chat}
-        onReplied={async () => setChat((await load(mode)) ?? chat)}
+        onLoad={async () => setChat((await load(mode)) ?? chat)}
       />
     </Sheet>
   );

@@ -22,7 +22,7 @@ import type {
   ChatMessage,
   SpecificThreadChat,
 } from "@/lib/trakometer/types";
-import { showDateAndTimeFromUnix } from "@/lib/utility";
+import { showDateAndTime } from "@/lib/utility";
 import { cn } from "@/lib/utils";
 import {
   BellRing,
@@ -134,7 +134,7 @@ function Bubble({
             <span className="text-xs">{m.User2Name}</span>
             <span className="whitespace-nowrap flex gap-1 items-center">
               <Clock className="size-3" />
-              {showDateAndTimeFromUnix(m.timestamp)}
+              {showDateAndTime(m.timestamp)}
             </span>
             <span
               className="w-full flex justify-end cursor-pointer"
