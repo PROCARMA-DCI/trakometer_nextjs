@@ -17,6 +17,7 @@ import {
   sendThreadReply,
   updateParticularMessage,
 } from "@/lib/trakometer/chat-api";
+import ReplyTemplates, { appendToDraft } from "./reply-templates";
 import type {
   ChatListData,
   ChatMessage,
@@ -242,6 +243,10 @@ export default function QuickReplyModal({
   const [email, setEmail] = useState(true);
   const [sending, setSending] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  // The latest message that carries the Google feedback / canned message lists.
+  const templateSource = [...messages]
+    .reverse()
+    .find((m) => m.google_feedback?.length || m.canned_messages?.length);
 
   // Show the latest message whenever the conversation changes.
   useEffect(() => {
@@ -325,10 +330,6 @@ export default function QuickReplyModal({
               Send email
             </label>
             <div className="flex-1" />
-            <Button type="button" variant="outline" size="sm" onClick={rate}>
-              <Star className="size-3.5 text-amber-500" />
-              App rating
-            </Button>
             <Button
               size="sm"
               disabled={!draft.trim() || sending}
@@ -338,6 +339,11 @@ export default function QuickReplyModal({
               Send
             </Button>
           </div>
+          <ReplyTemplates
+            sources={[thread, templateSource]}
+            onRate={rate}
+            onInsert={(text) => setDraft((d) => appendToDraft(d, text))}
+          />
         </div>
       </DialogContent>
     </Dialog>

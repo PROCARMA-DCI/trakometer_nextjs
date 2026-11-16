@@ -1,18 +1,37 @@
-export const showDateAndTime = (timestamp: number | string) => {
-  const date = new Date(Number(timestamp) * 1000);
-
-  return date
+const formatDate = (date: Date) =>
+  date
     .toLocaleString("en-US", {
-      timeZone: "America/Chicago",
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
-      // second: "2-digit",
       hour12: true,
     })
     .replaceAll("/", "-");
+
+// Unix timestamp (seconds) → Chicago time
+export const showDateAndTime = (seconds: number | string) => {
+  const date = new Date(Number(seconds) * 1000);
+
+  return isNaN(date.getTime())
+    ? ""
+    : formatDate(
+        new Date(
+          date.toLocaleString("en-US", {
+            timeZone: "America/Chicago",
+          }),
+        ),
+      );
+};
+
+// Raw SQL datetime → format without timezone conversion
+export const showDateAndTimeRaw = (rawdate: string) => {
+  const date = new Date(rawdate.replace(" ", "T"));
+
+  if (isNaN(date.getTime())) return "";
+
+  return formatDate(date);
 };
 
 /** "2026-11-02 09:00:00" → Date (local time; the T makes it parse the same everywhere). */

@@ -163,6 +163,8 @@ export interface SpecificThreadChat {
   total_messages: number;
   messages: ChatMessage[];
   app_rating: AppRating;
+  google_feedback?: GoogleFeedback[];
+  canned_messages?: CannedMessage[];
 }
 export interface AppRating {
   already_rated: boolean;
@@ -178,7 +180,18 @@ export interface Pagination {
   total: number;
 }
 
+export interface GoogleFeedback {
+  Name: string;
+  BitlyURL: string;
+}
+
+export interface CannedMessage {
+  CannedMessage: string;
+}
+
 export interface ChatMessage {
+  google_feedback?: GoogleFeedback[];
+  canned_messages?: CannedMessage[];
   message_id: string;
   threadid: string;
   user1: string;
@@ -193,11 +206,13 @@ export interface ChatMessage {
   /** "YYYY-MM-DD HH:mm:ss" */
   timestamp: string;
   title: string;
+  attachment_url: string;
   upload_img: string;
   device_type: "desktop" | "mobile";
   IsGuest: 0 | 1;
   message_date: string;
   message_time: string;
+  can_show_reply_button: boolean;
   sender_type: "admin" | "customer";
   favourite: 0 | 1;
   flag: 0 | 1;
