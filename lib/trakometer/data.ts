@@ -190,7 +190,7 @@ export const CHANNELS: {
   { id: "ngauge", label: "N-Gauge", link: "/nguage" },
   { id: "trade", label: "Value My Trade", link: "/trade" },
   { id: "service", label: "Service Plus", link: "/service" },
-  { id: "anon", label: "Anonymous", link: "/anon" },
+  { id: "anonymous", label: "Anonymous", link: "/anonymous" },
   { id: "kanopi", label: "Kanopi", link: "/kanopi" },
   {
     id: "notification",

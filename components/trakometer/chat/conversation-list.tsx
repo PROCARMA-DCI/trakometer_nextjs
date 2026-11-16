@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CHANNELS } from "@/lib/trakometer/data";
 import type { ChannelId, ChatListData } from "@/lib/trakometer/types";
-import { showDateAndTimeRaw } from "@/lib/utility";
+import { showDateAndTime, showDateAndTimeRaw } from "@/lib/utility";
 import { cn } from "@/lib/utils";
 import {
   ArrowUpDown,
@@ -179,7 +179,9 @@ export default function ConversationList({
                     {/* <div className="font-semibold">{t.time}</div> */}
                     <div className="text-muted-foreground flex items-center gap-1">
                       <Clock2 className="size-3.5" />{" "}
-                      {showDateAndTimeRaw(t.notification_date)}
+                      {t.notification_date
+                        ? showDateAndTimeRaw(t.notification_date)
+                        : showDateAndTime(t.timestamp)}
                     </div>
                   </div>
                   <div className="flex items-center gap-1">

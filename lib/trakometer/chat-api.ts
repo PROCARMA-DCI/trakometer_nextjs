@@ -16,9 +16,10 @@ const BASE = "/api/react/Trakometer";
 /** "This thread" sends the full key; "Full history" asks by contract only. */
 export async function replyLoadThreadMessages(
   t: ChatListData,
+  api?: string,
 ): Promise<ReplyLoadThreadMessage> {
   const res = await fetching({
-    url: `${BASE}/specificThreadChats`,
+    url: `${BASE}/${api ? api : "specificThreadChats"}`,
     body: {
       threadid: t.threadid,
       messageid: t.message_id,
@@ -37,9 +38,10 @@ export async function replyLoadThreadMessages(
 }
 export async function notificationViewApi(
   t: ChatListData,
+  api?: string,
 ): Promise<ReplyLoadThreadMessage> {
   const res = await fetching({
-    url: `${BASE}/viewContractChatWindow`,
+    url: `${BASE}/${api ? api : "viewContractChatWindow"}`,
     body: {
       threadid: t.threadid,
       ContractNo: t.ContractNo,

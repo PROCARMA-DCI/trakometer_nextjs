@@ -24,6 +24,8 @@ interface Props {
   loading?: boolean;
   error?: string | null;
   pager?: Pager;
+  chatThreadApi?: string;
+  viewContractChatWindowApi?: string;
 }
 
 const ChatScreen = ({
@@ -32,6 +34,8 @@ const ChatScreen = ({
   loading = false,
   error = null,
   pager,
+  chatThreadApi = "",
+  viewContractChatWindowApi = "",
 }: Props) => {
   const [newestFirst, setNewestFirst] = useState(true);
   const [selected, setSelected] = useState<ChatListData | null>(null);
@@ -52,13 +56,13 @@ const ChatScreen = ({
   }, [fullOpen, setThreadOpen]);
 
   const loadMessages = useCallback(async (item: ChatListData) => {
-    const r = await replyLoadThreadMessages(item);
+    const r = await replyLoadThreadMessages(item, chatThreadApi);
     setSpecificThread(r.data);
     setReplyLoadMessages(r.data.messages);
   }, []);
 
   const loadViewMessages = useCallback(async (item: ChatListData) => {
-    const r = await notificationViewApi(item);
+    const r = await notificationViewApi(item, viewContractChatWindowApi);
     setSpecificThread(r?.data);
     setViewMessages(r?.data?.messages);
   }, []);

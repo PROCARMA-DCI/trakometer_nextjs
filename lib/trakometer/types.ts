@@ -42,9 +42,9 @@ export type ChannelId =
   | "ngauge"
   | "trade"
   | "service"
-  | "anon"
   | "kanopi"
-  | "notification";
+  | "notification"
+  | "anonymous";
 export type AlertFilter = "star" | "new" | "flag" | null;
 export type ThreadMode = "reply" | "full";
 

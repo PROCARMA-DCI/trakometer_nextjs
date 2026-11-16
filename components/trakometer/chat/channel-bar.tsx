@@ -26,7 +26,7 @@ const CHANNEL_ICONS: Record<
   trade: Car,
   service: CalendarClock,
 
-  anon: EyeOff,
+  anonymous: EyeOff,
   kanopi: MessagesSquare,
   notification: BellDot,
 };
