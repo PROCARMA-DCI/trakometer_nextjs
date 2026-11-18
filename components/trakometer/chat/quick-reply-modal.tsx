@@ -46,6 +46,9 @@ interface Props {
   onClose: () => void;
   /** Called after a reply is sent so the caller can reload the messages. */
   onSent: () => void;
+  replyToThreadChatApi?: string;
+  updateParticularMessageApi?: string;
+  deleteParticularMessageApi?: string;
   isSendSmsShow?: boolean;
   isSendEmailShow?: boolean;
   isAppRatingShow?: boolean;
@@ -67,6 +70,8 @@ function Bubble({
   editing,
   anyEditing,
   setEditing,
+  updateParticularMessageApi,
+  deleteParticularMessageApi,
 }: {
   m: ChatMessage;
   mine: boolean;
@@ -76,6 +81,8 @@ function Bubble({
   /** Some bubble is being edited, so hide edit/delete everywhere else. */
   anyEditing: boolean;
   setEditing: (editing: boolean) => void;
+  updateParticularMessageApi?: string;
+  deleteParticularMessageApi?: string;
 }) {
   const name = m.user1Name;
   const image = m.User1Image;
@@ -97,7 +104,11 @@ function Bubble({
 
   const saveEdit = async () => {
     setBusy(true);
-    const res = await updateParticularMessage(m.message_id, editText.trim());
+    const res = await updateParticularMessage(
+      m.message_id,
+      editText.trim(),
+      updateParticularMessageApi,
+    );
     setBusy(false);
     if (!res.ok) return toast.error(res.error ?? "Could not edit the message.");
     toast.success("Message updated.");
@@ -108,7 +119,10 @@ function Bubble({
   const removeMessage = async () => {
     if (!window.confirm("Delete this message?")) return;
     setBusy(true);
-    const res = await deleteParticularMessage(m.message_id);
+    const res = await deleteParticularMessage(
+      m.message_id,
+      deleteParticularMessageApi,
+    );
     setBusy(false);
     if (!res.ok) {
       return toast.error(res.error ?? "Could not delete the message.");
@@ -239,6 +253,9 @@ export default function QuickReplyModal({
   messages,
   onClose,
   onSent,
+  replyToThreadChatApi = "",
+  updateParticularMessageApi = "",
+  deleteParticularMessageApi = "",
   isSendSmsShow = true,
   isSendEmailShow = true,
   isAppRatingShow = true,
@@ -261,14 +278,15 @@ export default function QuickReplyModal({
 
   const send = async () => {
     setSending(true);
-    const res = await sendThreadReply({
+    const item = {
       message_reply: draft.trim(),
-      message_id: thread.messageid,
+      message_id: thread.messageid ?? thread.threadid,
       // Hidden options are left out of the request entirely.
       isSendSMS: isSendSmsShow ? sms : undefined,
       isSendEmailNow: isSendEmailShow ? email : undefined,
       IsGuest: thread.is_guest,
-    });
+    };
+    const res = await sendThreadReply(item, replyToThreadChatApi);
     setSending(false);
     if (!res.ok) return toast.error(res.error ?? "Could not send the reply.");
     toast.success("Reply sent.");
@@ -306,6 +324,8 @@ export default function QuickReplyModal({
               editing={editingId === m.message_id}
               anyEditing={editingId !== null}
               setEditing={(on) => setEditingId(on ? m.message_id : null)}
+              updateParticularMessageApi={updateParticularMessageApi}
+              deleteParticularMessageApi={deleteParticularMessageApi}
             />
           ))}
           <div ref={endRef} />

@@ -15,6 +15,9 @@ export default function Page() {
       pager={pager}
       chatThreadApi={"anonymousChatThread"}
       viewContractChatWindowApi={"viewContractChatWindowAnonymous"}
+      replyToThreadChatApi={"anonymousChatReply"}
+      updateParticularMessageApi={"updateParticularAnonymousMessage"}
+      deleteParticularMessageApi={"deleteParticularAnonymousMessage"}
       isSendSmsShow={false}
       isSendEmailShow={false}
       isAppRatingShow={false}

@@ -58,17 +58,20 @@ export async function notificationViewApi(
   return res as unknown as ReplyLoadThreadMessage;
 }
 
-export async function sendThreadReply(p: {
-  message_reply: string;
-  /** Id of the message being replied to. */
-  message_id: string;
-  /** Omit to leave the field out of the request. */
-  isSendSMS?: boolean;
-  isSendEmailNow?: boolean;
-  IsGuest: boolean;
-}) {
+export async function sendThreadReply(
+  p: {
+    message_reply: string;
+    /** Id of the message being replied to. */
+    message_id: string;
+    /** Omit to leave the field out of the request. */
+    isSendSMS?: boolean;
+    isSendEmailNow?: boolean;
+    IsGuest: boolean;
+  },
+  api = "replyToThreadChat",
+) {
   const res = await fetching({
-    url: `${BASE}/replyToThreadChat`,
+    url: `${BASE}/${api}`,
     body: {
       message_reply: p.message_reply,
       message_reply_id: p.message_id,
@@ -100,9 +103,10 @@ export async function sendAppRating(contractNo: string, IsGuest: boolean) {
 export async function updateParticularMessage(
   message_id: string,
   message_text: string,
+  api = "updateParticularMessage",
 ) {
   const res = await fetching({
-    url: `${BASE}/updateParticularMessage`,
+    url: `${BASE}/${api}`,
     body: { message_id, message_text },
   });
   return {
@@ -111,9 +115,12 @@ export async function updateParticularMessage(
   };
 }
 
-export async function deleteParticularMessage(message_id: string) {
+export async function deleteParticularMessage(
+  message_id: string,
+  api = "deleteParticularMessage",
+) {
   const res = await fetching({
-    url: `${BASE}/deleteParticularMessage`,
+    url: `${BASE}/${api}`,
     body: { message_id },
   });
   return {

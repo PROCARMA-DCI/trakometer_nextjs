@@ -26,6 +26,9 @@ interface Props {
   pager?: Pager;
   chatThreadApi?: string;
   viewContractChatWindowApi?: string;
+  replyToThreadChatApi?: string;
+  updateParticularMessageApi?: string;
+  deleteParticularMessageApi?: string;
   isSendSmsShow?: boolean;
   isSendEmailShow?: boolean;
   isAppRatingShow?: boolean;
@@ -38,6 +41,9 @@ const ChatScreen = ({
   error = null,
   pager,
   chatThreadApi = "",
+  replyToThreadChatApi = "",
+  updateParticularMessageApi = "",
+  deleteParticularMessageApi = "",
   viewContractChatWindowApi = "",
   isSendSmsShow = true,
   isSendEmailShow = true,
@@ -128,6 +134,9 @@ const ChatScreen = ({
             setReplyLoadMessages(null);
           }}
           onSent={() => loadMessages(selected)}
+          replyToThreadChatApi={replyToThreadChatApi}
+          updateParticularMessageApi={updateParticularMessageApi}
+          deleteParticularMessageApi={deleteParticularMessageApi}
           isSendSmsShow={isSendSmsShow}
           isSendEmailShow={isSendEmailShow}
           isAppRatingShow={isAppRatingShow}
