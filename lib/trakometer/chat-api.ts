@@ -212,6 +212,33 @@ export async function chatWindowAll(
   return res.data as ScheduleChatWindow;
 }
 
+/** Service Plus reply (the Check action): answers a schedule request. */
+export async function replyServicePlus(
+  p: {
+    message_reply: string;
+    /** The specific thread being answered. */
+    message_reply_id: string | number;
+    message_id: string | number;
+    isSendSMS: boolean;
+    isSendEmailNow: boolean;
+  },
+  api = "reply",
+) {
+  const res = await fetching({
+    url: `${BASE}/${api}`,
+    body: {
+      ...p,
+      isSendSMS: p.isSendSMS ? 1 : 0,
+      isSendEmailNow: p.isSendEmailNow ? 1 : 0,
+    },
+    isFormdata: true,
+  });
+  return {
+    ok: res.ok && res.success !== false,
+    error: res.message as string | undefined,
+  };
+}
+
 export async function replyScheduleChat(p: {
   message: string;
   threadid: string | number;

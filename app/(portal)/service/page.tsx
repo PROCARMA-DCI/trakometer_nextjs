@@ -1,6 +1,6 @@
 "use client";
-import Table, { useTableContext } from "@/components/cui/table";
 import { PageNav } from "@/components/cui/PageNav";
+import Table, { useTableContext } from "@/components/cui/table";
 import { PAGE_SIZE, useChatFeed } from "@/components/trakometer/chat/chat-feed";
 import { Spinner } from "@/components/ui/spinner";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { Check, Eye, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { ServiceDetailSheet } from "./service-detail-sheet";
+import { ServiceReplyDialog } from "./service-reply-dialog";
 
 /** `startIndex` = rows before the first loaded one, so a jump to page 2 numbers from 21. */
 
@@ -29,6 +30,7 @@ const actionLabelColor = (
 const makeColumns = (
   startIndex: number,
   onView: (row: ServicePlanList) => void,
+  onCheck: (row: ServicePlanList) => void,
 ): ColumnType<ServicePlanList>[] => [
   {
     title: "#",
@@ -91,7 +93,14 @@ const makeColumns = (
       if (row.can_take_action) {
         return (
           <span className="flex items-center justify-center gap-1.5 text-sky-600">
-            <Check className="size-4" aria-label="Accept" />
+            <button
+              type="button"
+              title="Reply"
+              onClick={() => onCheck(row)}
+              className="rounded p-0.5 hover:bg-sky-100 dark:hover:bg-sky-950"
+            >
+              <Check className="size-4" aria-label="Accept" />
+            </button>
             <X className="size-4" aria-label="Decline" />
           </span>
         );
@@ -146,11 +155,13 @@ function ServicePageNav(props: {
 }
 
 export default function Page() {
-  const { rows, loading, error, pager } = useChatFeed<ServicePlanList>();
+  const { rows, loading, error, pager, reload } =
+    useChatFeed<ServicePlanList>();
 
   const topRef = useRef<HTMLDivElement>(null);
   const [detail, setDetail] = useState<ScheduleServiceDetail | null>(null);
   const [open, setOpen] = useState(false);
+  const [replyRow, setReplyRow] = useState<ServicePlanList | null>(null);
   const columns = useMemo(
     () =>
       makeColumns(pager.startIndex, async (row) => {
@@ -158,7 +169,7 @@ export default function Page() {
         if (!d) return;
         setDetail(d);
         setOpen(true);
-      }),
+      }, setReplyRow),
     [pager.startIndex],
   );
   return (
@@ -201,6 +212,11 @@ export default function Page() {
           onLoadMore={pager.onLoadMore}
         />
       </Table>
+      <ServiceReplyDialog
+        row={replyRow}
+        onClose={() => setReplyRow(null)}
+        onSent={reload}
+      />
       <ServiceDetailSheet open={open} onOpenChange={setOpen} detail={detail} />
     </div>
   );

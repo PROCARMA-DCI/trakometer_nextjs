@@ -58,6 +58,8 @@ interface FeedCtx<T = ChatListData> {
   pager: Pager;
   loading: boolean;
   error: string | null;
+  /** Refetch the list from page 1 (e.g. after a reply changed a row). */
+  reload: () => void;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -179,6 +181,7 @@ export function ChatFeedProvider<T = ChatListData>({
         rows,
         loading,
         error,
+        reload,
         pager: {
           page,
           pageSize: limit ?? PAGE_SIZE,

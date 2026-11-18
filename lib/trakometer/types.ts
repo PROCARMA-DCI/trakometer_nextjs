@@ -241,6 +241,8 @@ export interface ServicePlanList {
   /** Element shape unknown: the sample response was an empty array. */
   action_icons: string[];
   action_label: "Confirmed" | "Cancelled" | "Update Confirmed";
+  /** Unverified: shown in the Service Plus Reply dialog when the list sends it. */
+  CustomerEmail?: string | null;
 }
 
 /** `viewScheduleService` response (data part). */
