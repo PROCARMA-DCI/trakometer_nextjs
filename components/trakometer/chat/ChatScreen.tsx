@@ -29,6 +29,7 @@ interface Props {
   replyToThreadChatApi?: string;
   updateParticularMessageApi?: string;
   deleteParticularMessageApi?: string;
+  favoriteChatmessageApi?: string;
   isSendSmsShow?: boolean;
   isSendEmailShow?: boolean;
   isAppRatingShow?: boolean;
@@ -45,6 +46,7 @@ const ChatScreen = ({
   updateParticularMessageApi = "",
   deleteParticularMessageApi = "",
   viewContractChatWindowApi = "",
+  favoriteChatmessageApi = "",
   isSendSmsShow = true,
   isSendEmailShow = true,
   isAppRatingShow = true,
@@ -137,6 +139,7 @@ const ChatScreen = ({
           replyToThreadChatApi={replyToThreadChatApi}
           updateParticularMessageApi={updateParticularMessageApi}
           deleteParticularMessageApi={deleteParticularMessageApi}
+          favoriteChatmessageApi={favoriteChatmessageApi}
           isSendSmsShow={isSendSmsShow}
           isSendEmailShow={isSendEmailShow}
           isAppRatingShow={isAppRatingShow}

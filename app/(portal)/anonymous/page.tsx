@@ -18,6 +18,7 @@ export default function Page() {
       replyToThreadChatApi={"anonymousChatReply"}
       updateParticularMessageApi={"updateParticularAnonymousMessage"}
       deleteParticularMessageApi={"deleteParticularAnonymousMessage"}
+      favoriteChatmessageApi={"favoriteAnonymousChatmessage"}
       isSendSmsShow={false}
       isSendEmailShow={false}
       isAppRatingShow={false}

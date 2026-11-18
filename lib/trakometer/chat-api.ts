@@ -142,9 +142,13 @@ export async function setMessageFlag(message_id: string, flag: 0 | 1) {
   };
 }
 
-export async function makeMessageFavorite(message_id: string, fav: 0 | 1) {
+export async function makeMessageFavorite(
+  message_id: string,
+  fav: 0 | 1,
+  api = "favoritemessage",
+) {
   const res = await fetching({
-    url: `${BASE}/favoritemessage`,
+    url: `${BASE}/${api}`,
     body: { message_id, fav: fav },
   });
   return {

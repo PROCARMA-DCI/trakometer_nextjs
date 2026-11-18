@@ -49,6 +49,7 @@ interface Props {
   replyToThreadChatApi?: string;
   updateParticularMessageApi?: string;
   deleteParticularMessageApi?: string;
+  favoriteChatmessageApi?: string;
   isSendSmsShow?: boolean;
   isSendEmailShow?: boolean;
   isAppRatingShow?: boolean;
@@ -72,6 +73,7 @@ function Bubble({
   setEditing,
   updateParticularMessageApi,
   deleteParticularMessageApi,
+  favoriteChatmessageApi,
 }: {
   m: ChatMessage;
   mine: boolean;
@@ -83,6 +85,7 @@ function Bubble({
   setEditing: (editing: boolean) => void;
   updateParticularMessageApi?: string;
   deleteParticularMessageApi?: string;
+  favoriteChatmessageApi?: string;
 }) {
   const name = m.user1Name;
   const image = m.User1Image;
@@ -93,7 +96,11 @@ function Bubble({
   const [toggled, setFavourite] = useState<0 | 1>(m.favourite == 0 ? 0 : 1);
 
   const loadMessageFavorite = async () => {
-    const res = await makeMessageFavorite(m.message_id, toggled);
+    const res = await makeMessageFavorite(
+      m.message_id,
+      toggled,
+      favoriteChatmessageApi,
+    );
     if (!res.ok) {
       return toast.error(res.error ?? "Could not update the favourite.");
     }
@@ -256,6 +263,7 @@ export default function QuickReplyModal({
   replyToThreadChatApi = "",
   updateParticularMessageApi = "",
   deleteParticularMessageApi = "",
+  favoriteChatmessageApi = "",
   isSendSmsShow = true,
   isSendEmailShow = true,
   isAppRatingShow = true,
@@ -326,6 +334,7 @@ export default function QuickReplyModal({
               setEditing={(on) => setEditingId(on ? m.message_id : null)}
               updateParticularMessageApi={updateParticularMessageApi}
               deleteParticularMessageApi={deleteParticularMessageApi}
+              favoriteChatmessageApi={favoriteChatmessageApi}
             />
           ))}
           <div ref={endRef} />
