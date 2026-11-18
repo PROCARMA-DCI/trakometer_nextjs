@@ -165,6 +165,7 @@ export interface SpecificThreadChat {
   app_rating: AppRating;
   google_feedback?: GoogleFeedback[];
   canned_messages?: CannedMessage[];
+  [key: string]: unknown;
 }
 export interface AppRating {
   already_rated: boolean;

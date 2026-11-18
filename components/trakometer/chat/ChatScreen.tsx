@@ -26,6 +26,9 @@ interface Props {
   pager?: Pager;
   chatThreadApi?: string;
   viewContractChatWindowApi?: string;
+  isSendSmsShow?: boolean;
+  isSendEmailShow?: boolean;
+  isAppRatingShow?: boolean;
 }
 
 const ChatScreen = ({
@@ -57,7 +60,12 @@ const ChatScreen = ({
 
   const loadMessages = useCallback(async (item: ChatListData) => {
     const r = await replyLoadThreadMessages(item, chatThreadApi);
-    setSpecificThread(r.data);
+    const data = {
+      ...r.data,
+      canned_messages: r.data?.cannedmeesag,
+      google_feedback: r.data?.googlefeedback,
+    };
+    setSpecificThread(data as SpecificThreadChat);
     setReplyLoadMessages(r.data.messages);
   }, []);
 
