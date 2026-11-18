@@ -62,8 +62,9 @@ export async function sendThreadReply(p: {
   message_reply: string;
   /** Id of the message being replied to. */
   message_id: string;
-  isSendSMS: boolean;
-  isSendEmailNow: boolean;
+  /** Omit to leave the field out of the request. */
+  isSendSMS?: boolean;
+  isSendEmailNow?: boolean;
   IsGuest: boolean;
 }) {
   const res = await fetching({
@@ -72,8 +73,10 @@ export async function sendThreadReply(p: {
       message_reply: p.message_reply,
       message_reply_id: p.message_id,
       IsGuest: p.IsGuest,
-      isSendSMS: p.isSendSMS ? 1 : 0,
-      isSendEmailNow: p.isSendEmailNow ? 1 : 0,
+      ...(p.isSendSMS !== undefined && { isSendSMS: p.isSendSMS ? 1 : 0 }),
+      ...(p.isSendEmailNow !== undefined && {
+        isSendEmailNow: p.isSendEmailNow ? 1 : 0,
+      }),
     },
   });
   return {

@@ -15,11 +15,17 @@ export default function ReplyBox({
   message,
   onCancel,
   onSent,
+  isSendSmsShow = true,
+  isSendEmailShow = true,
+  isAppRatingShow = true,
 }: {
   thread: SpecificThreadChat;
   message: ChatMessage;
   onCancel: () => void;
   onSent: () => void;
+  isSendSmsShow?: boolean;
+  isSendEmailShow?: boolean;
+  isAppRatingShow?: boolean;
 }) {
   const [draft, setDraft] = useState("");
   const [sms, setSms] = useState(false);
@@ -31,8 +37,9 @@ export default function ReplyBox({
     const res = await sendThreadReply({
       message_reply: draft.trim(),
       message_id: message.message_id,
-      isSendSMS: sms,
-      isSendEmailNow: email,
+      // Hidden options are left out of the request entirely.
+      isSendSMS: isSendSmsShow ? sms : undefined,
+      isSendEmailNow: isSendEmailShow ? email : undefined,
       IsGuest: thread.is_guest,
     });
     setSending(false);
@@ -58,23 +65,29 @@ export default function ReplyBox({
         className="bg-background"
       />
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-        <span className="text-muted-foreground">Send</span>
-        <label className="flex items-center gap-1.5">
-          <input
-            type="checkbox"
-            checked={sms}
-            onChange={(e) => setSms(e.target.checked)}
-          />
-          SMS
-        </label>
-        <label className="flex items-center gap-1.5">
-          <input
-            type="checkbox"
-            checked={email}
-            onChange={(e) => setEmail(e.target.checked)}
-          />
-          Email
-        </label>
+        {(isSendSmsShow || isSendEmailShow) && (
+          <span className="text-muted-foreground">Send</span>
+        )}
+        {isSendSmsShow && (
+          <label className="flex items-center gap-1.5">
+            <input
+              type="checkbox"
+              checked={sms}
+              onChange={(e) => setSms(e.target.checked)}
+            />
+            SMS
+          </label>
+        )}
+        {isSendEmailShow && (
+          <label className="flex items-center gap-1.5">
+            <input
+              type="checkbox"
+              checked={email}
+              onChange={(e) => setEmail(e.target.checked)}
+            />
+            Email
+          </label>
+        )}
         <div className="flex-1" />
         <Button type="button" variant="outline" size="sm" onClick={onCancel}>
           <X className="size-3.5" />
@@ -87,7 +100,8 @@ export default function ReplyBox({
       </div>
       <ReplyTemplates
         sources={[thread, message]}
-        onRate={rate}
+        onRate={isAppRatingShow ? rate : undefined}
+        draft={draft}
         onInsert={(text) => setDraft((d) => appendToDraft(d, text))}
       />
     </div>

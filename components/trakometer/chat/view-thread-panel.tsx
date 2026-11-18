@@ -16,6 +16,9 @@ interface Props {
   onBack: () => void;
   /** Called after a reply is sent so the caller can reload the messages. */
   onSent: () => void;
+  isSendSmsShow?: boolean;
+  isSendEmailShow?: boolean;
+  isAppRatingShow?: boolean;
 }
 
 export default function ViewThreadPanel({
@@ -24,6 +27,9 @@ export default function ViewThreadPanel({
   messages,
   onBack,
   onSent,
+  isSendSmsShow = true,
+  isSendEmailShow = true,
+  isAppRatingShow = true,
 }: Props) {
   const [replyId, setReplyId] = useState<string | null>(null);
 
@@ -60,6 +66,9 @@ export default function ViewThreadPanel({
             // selected row is "mine"; the rest are the ones we can reply to.
             mine={m.sender_type === "admin"}
             thread={thread}
+            isSendSmsShow={isSendSmsShow}
+            isSendEmailShow={isSendEmailShow}
+            isAppRatingShow={isAppRatingShow}
             replying={replyId === m.message_id}
             // Only one reply form at a time: hide every Reply until it is closed.
             canReply={replyId === null}

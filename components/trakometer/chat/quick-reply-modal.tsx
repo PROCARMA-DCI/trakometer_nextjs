@@ -17,7 +17,6 @@ import {
   sendThreadReply,
   updateParticularMessage,
 } from "@/lib/trakometer/chat-api";
-import ReplyTemplates, { appendToDraft } from "./reply-templates";
 import type {
   ChatListData,
   ChatMessage,
@@ -38,6 +37,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import ReplyTemplates, { appendToDraft } from "./reply-templates";
 
 interface Props {
   thread: SpecificThreadChat;
@@ -46,6 +46,9 @@ interface Props {
   onClose: () => void;
   /** Called after a reply is sent so the caller can reload the messages. */
   onSent: () => void;
+  isSendSmsShow?: boolean;
+  isSendEmailShow?: boolean;
+  isAppRatingShow?: boolean;
 }
 
 const initials = (name: string) =>
@@ -80,7 +83,7 @@ function Bubble({
   const DeviceIcon = m.device_type === "mobile" ? Smartphone : Monitor;
 
   // Props are read-only, so keep the star in state; the backend may send "0"/"1".
-  const [toggled, setFavourite] = useState<0 | 1>(m.favourite);
+  const [toggled, setFavourite] = useState<0 | 1>(m.favourite == 0 ? 0 : 1);
 
   const loadMessageFavorite = async () => {
     const res = await makeMessageFavorite(m.message_id, toggled);
@@ -236,6 +239,9 @@ export default function QuickReplyModal({
   messages,
   onClose,
   onSent,
+  isSendSmsShow = true,
+  isSendEmailShow = true,
+  isAppRatingShow = true,
 }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -258,8 +264,9 @@ export default function QuickReplyModal({
     const res = await sendThreadReply({
       message_reply: draft.trim(),
       message_id: thread.messageid,
-      isSendSMS: sms,
-      isSendEmailNow: email,
+      // Hidden options are left out of the request entirely.
+      isSendSMS: isSendSmsShow ? sms : undefined,
+      isSendEmailNow: isSendEmailShow ? email : undefined,
       IsGuest: thread.is_guest,
     });
     setSending(false);
@@ -313,22 +320,26 @@ export default function QuickReplyModal({
             autoFocus
           />
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-            <label className="flex items-center gap-1.5">
-              <input
-                type="checkbox"
-                checked={sms}
-                onChange={(e) => setSms(e.target.checked)}
-              />
-              Send SMS
-            </label>
-            <label className="flex items-center gap-1.5">
-              <input
-                type="checkbox"
-                checked={email}
-                onChange={(e) => setEmail(e.target.checked)}
-              />
-              Send email
-            </label>
+            {isSendSmsShow && (
+              <label className="flex items-center gap-1.5">
+                <input
+                  type="checkbox"
+                  checked={sms}
+                  onChange={(e) => setSms(e.target.checked)}
+                />
+                Send SMS
+              </label>
+            )}
+            {isSendEmailShow && (
+              <label className="flex items-center gap-1.5">
+                <input
+                  type="checkbox"
+                  checked={email}
+                  onChange={(e) => setEmail(e.target.checked)}
+                />
+                Send email
+              </label>
+            )}
             <div className="flex-1" />
             <Button
               size="sm"
@@ -341,7 +352,8 @@ export default function QuickReplyModal({
           </div>
           <ReplyTemplates
             sources={[thread, templateSource]}
-            onRate={rate}
+            onRate={isAppRatingShow ? rate : undefined}
+            draft={draft}
             onInsert={(text) => setDraft((d) => appendToDraft(d, text))}
           />
         </div>

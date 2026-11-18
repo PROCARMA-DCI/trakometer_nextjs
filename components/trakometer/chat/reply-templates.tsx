@@ -13,16 +13,25 @@ import { ChevronDown, MessageSquareText, Star } from "lucide-react";
 interface Props {
   /** Sources of `google_feedback` / `canned_messages`; the first non-empty list wins. */
   sources: (
-    Pick<ChatMessage, "google_feedback" | "canned_messages"> | undefined
+    | Pick<ChatMessage, "google_feedback" | "canned_messages">
+    | undefined
   )[];
   /** Append text (a feedback link or canned message) to the reply draft. */
   onInsert: (text: string) => void;
   /** Request-Google-Rating action (sends the app rating request). */
   onRate?: () => void;
+  /** Current draft; items already in it are disabled so they can't be added twice. */
+  draft?: string;
 }
 
 /** "Request Google Rating" and "Canned Message" dropdowns for reply forms. */
-export default function ReplyTemplates({ sources, onInsert, onRate }: Props) {
+export default function ReplyTemplates({
+  sources,
+  onInsert,
+  onRate,
+  draft = "",
+}: Props) {
+  const added = (text: string) => !!text && draft.includes(text);
   const feedback =
     sources.find((s) => s?.google_feedback?.length)?.google_feedback ?? [];
   const canned =
@@ -49,6 +58,7 @@ export default function ReplyTemplates({ sources, onInsert, onRate }: Props) {
           {feedback.map((f) => (
             <DropdownMenuItem
               key={f.BitlyURL}
+              disabled={added(f.BitlyURL)}
               onClick={() => onInsert(f.BitlyURL)}
               className="font-medium uppercase text-sky-600"
             >
@@ -85,6 +95,7 @@ export default function ReplyTemplates({ sources, onInsert, onRate }: Props) {
           {canned.map((c) => (
             <DropdownMenuItem
               key={c.CannedMessage}
+              disabled={added(c.CannedMessage)}
               onClick={() => onInsert(c.CannedMessage)}
               className="items-start whitespace-normal text-sky-700"
             >

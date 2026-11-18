@@ -39,6 +39,9 @@ const ChatScreen = ({
   pager,
   chatThreadApi = "",
   viewContractChatWindowApi = "",
+  isSendSmsShow = true,
+  isSendEmailShow = true,
+  isAppRatingShow = true,
 }: Props) => {
   const [newestFirst, setNewestFirst] = useState(true);
   const [selected, setSelected] = useState<ChatListData | null>(null);
@@ -109,6 +112,9 @@ const ChatScreen = ({
             setViewMessages(null);
           }}
           onSent={() => loadViewMessages(selected)}
+          isSendSmsShow={isSendSmsShow}
+          isSendEmailShow={isSendEmailShow}
+          isAppRatingShow={isAppRatingShow}
         />
       )}
 
@@ -122,6 +128,9 @@ const ChatScreen = ({
             setReplyLoadMessages(null);
           }}
           onSent={() => loadMessages(selected)}
+          isSendSmsShow={isSendSmsShow}
+          isSendEmailShow={isSendEmailShow}
+          isAppRatingShow={isAppRatingShow}
         />
       )}
     </div>

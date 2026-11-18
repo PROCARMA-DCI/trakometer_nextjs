@@ -37,6 +37,9 @@ export default function ViewBubble({
   onReply,
   onCancelReply,
   onSent,
+  isSendSmsShow,
+  isSendEmailShow,
+  isAppRatingShow,
 }: {
   m: ChatMessage;
   contractNo: string;
@@ -47,6 +50,9 @@ export default function ViewBubble({
   onReply: () => void;
   onCancelReply: () => void;
   onSent: () => void;
+  isSendSmsShow?: boolean;
+  isSendEmailShow?: boolean;
+  isAppRatingShow?: boolean;
 }) {
   const DeviceIcon = m.device_type === "mobile" ? Smartphone : Monitor;
   const name = m.user1Name;
@@ -145,6 +151,9 @@ export default function ViewBubble({
             message={m}
             onCancel={onCancelReply}
             onSent={onSent}
+            isSendSmsShow={isSendSmsShow}
+            isSendEmailShow={isSendEmailShow}
+            isAppRatingShow={isAppRatingShow}
           />
         )}
       </div>
