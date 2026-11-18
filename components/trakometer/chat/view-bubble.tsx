@@ -2,17 +2,25 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { makeMessageFavorite, setMessageFlag } from "@/lib/trakometer/chat-api";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  deleteParticularMessage,
+  makeMessageFavorite,
+  setMessageFlag,
+  updateParticularMessage,
+} from "@/lib/trakometer/chat-api";
 import type { ChatMessage, SpecificThreadChat } from "@/lib/trakometer/types";
 import { cn } from "@/lib/utils";
 import {
   Clock,
   Flag,
   Monitor,
+  Pencil,
   Phone,
   Reply,
   Smartphone,
   Star,
+  Trash,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -40,6 +48,14 @@ export default function ViewBubble({
   isSendSmsShow,
   isSendEmailShow,
   isAppRatingShow,
+  editing,
+  anyEditing,
+  setEditing,
+  updateParticularMessageApi,
+  deleteParticularMessageApi,
+  favoriteChatmessageApi,
+  setflagNotificationsApi,
+  replyToThreadChatApi,
 }: {
   m: ChatMessage;
   contractNo: string;
@@ -53,26 +69,74 @@ export default function ViewBubble({
   isSendSmsShow?: boolean;
   isSendEmailShow?: boolean;
   isAppRatingShow?: boolean;
+  /** This bubble is the one being edited. */
+  editing: boolean;
+  /** Some bubble is being edited, so hide edit/delete everywhere else. */
+  anyEditing: boolean;
+  setEditing: (editing: boolean) => void;
+  updateParticularMessageApi?: string;
+  deleteParticularMessageApi?: string;
+  favoriteChatmessageApi?: string;
+  setflagNotificationsApi?: string;
+  replyToThreadChatApi?: string;
 }) {
   const DeviceIcon = m.device_type === "mobile" ? Smartphone : Monitor;
   const name = m.user1Name;
   const [favToggled, setFavourite] = useState<0 | 1>(m.favourite);
   const [flagToggled, setFlag] = useState<0 | 1>(m.flag);
   const loadMessageFavorite = async () => {
-    const res = await makeMessageFavorite(m.message_id, favToggled);
+    const res = await makeMessageFavorite(
+      m.message_id,
+      favToggled,
+      favoriteChatmessageApi || undefined,
+    );
     if (!res.ok) {
       return toast.error(res.error ?? "Could not update the favourite.");
     }
     setFavourite(res.data?.favourite ?? m.favourite);
   };
   const loadMessageFlag = async () => {
-    const res = await setMessageFlag(m.message_id, flagToggled);
+    const res = await setMessageFlag(
+      m.message_id,
+      flagToggled,
+      setflagNotificationsApi,
+    );
     if (!res.ok) {
       return toast.error(res.error ?? "Could not update the flag.");
     }
     setFlag(res.data?.flag ?? m.flag);
   };
-  console.log({ canReply });
+  const [editText, setEditText] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const saveEdit = async () => {
+    setBusy(true);
+    const res = await updateParticularMessage(
+      m.message_id,
+      editText.trim(),
+      updateParticularMessageApi || undefined,
+    );
+    setBusy(false);
+    if (!res.ok) return toast.error(res.error ?? "Could not edit the message.");
+    toast.success("Message updated.");
+    setEditing(false);
+    onSent();
+  };
+
+  const removeMessage = async () => {
+    if (!window.confirm("Delete this message?")) return;
+    setBusy(true);
+    const res = await deleteParticularMessage(
+      m.message_id,
+      deleteParticularMessageApi || undefined,
+    );
+    setBusy(false);
+    if (!res.ok) {
+      return toast.error(res.error ?? "Could not delete the message.");
+    }
+    toast.success("Message deleted.");
+    onSent();
+  };
   return (
     <div className={cn("flex items-start gap-3", mine && "flex-row-reverse")}>
       <Avatar className="size-10">
@@ -119,7 +183,7 @@ export default function ViewBubble({
             </span>
           </div>
         </div>
-        {m.message && (
+        {m.message && !editing && (
           <div
             className="break-words text-sm [&_a]:text-primary [&_a]:underline"
             dangerouslySetInnerHTML={{ __html: m.message }}
@@ -138,19 +202,84 @@ export default function ViewBubble({
             {" "}
             <strong>TEL</strong> <Phone className="size-3" />: {m.User1Phone}
           </div>
-          {m.can_show_reply_button && (
-            <Button type="button" variant="outline" size="xs" onClick={onReply}>
-              <Reply className="size-3" />
-              Reply
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {mine && !anyEditing && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="xs"
+                  onClick={() => {
+                    setEditText(m.message);
+                    setEditing(true);
+                  }}
+                >
+                  <Pencil className="size-3" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="xs"
+                  disabled={busy}
+                  onClick={removeMessage}
+                >
+                  <Trash className="size-3" />
+                </Button>
+              </>
+            )}
+            {m.can_show_reply_button && (
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={onReply}
+              >
+                <Reply className="size-3" />
+                Reply
+              </Button>
+            )}
+          </div>
         </div>
+        {editing && (
+          <div className="flex flex-col gap-2">
+            <Textarea
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              rows={3}
+              autoFocus
+              onFocus={(e) => {
+                const end = e.currentTarget.value.length;
+                e.currentTarget.setSelectionRange(end, end);
+              }}
+              className="bg-background"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={() => setEditing(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                size="xs"
+                disabled={!editText.trim() || busy}
+                onClick={saveEdit}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        )}
         {replying && (
           <ReplyBox
             thread={thread}
             message={m}
             onCancel={onCancelReply}
             onSent={onSent}
+            replyToThreadChatApi={replyToThreadChatApi}
             isSendSmsShow={isSendSmsShow}
             isSendEmailShow={isSendEmailShow}
             isAppRatingShow={isAppRatingShow}

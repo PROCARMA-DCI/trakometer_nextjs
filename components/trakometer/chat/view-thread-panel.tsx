@@ -19,6 +19,11 @@ interface Props {
   isSendSmsShow?: boolean;
   isSendEmailShow?: boolean;
   isAppRatingShow?: boolean;
+  updateParticularMessageApi?: string;
+  deleteParticularMessageApi?: string;
+  favoriteChatmessageApi?: string;
+  setflagNotificationsApi?: string;
+  replyToThreadChatApi?: string;
 }
 
 export default function ViewThreadPanel({
@@ -30,8 +35,14 @@ export default function ViewThreadPanel({
   isSendSmsShow = true,
   isSendEmailShow = true,
   isAppRatingShow = true,
+  updateParticularMessageApi = "",
+  deleteParticularMessageApi = "",
+  favoriteChatmessageApi = "",
+  replyToThreadChatApi = "",
+  setflagNotificationsApi = "",
 }: Props) {
   const [replyId, setReplyId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   return (
     <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -69,6 +80,14 @@ export default function ViewThreadPanel({
             isSendSmsShow={isSendSmsShow}
             isSendEmailShow={isSendEmailShow}
             isAppRatingShow={isAppRatingShow}
+            editing={editingId === m.message_id}
+            anyEditing={editingId !== null}
+            setEditing={(on) => setEditingId(on ? m.message_id : null)}
+            replyToThreadChatApi={replyToThreadChatApi}
+            updateParticularMessageApi={updateParticularMessageApi}
+            deleteParticularMessageApi={deleteParticularMessageApi}
+            favoriteChatmessageApi={favoriteChatmessageApi}
+            setflagNotificationsApi={setflagNotificationsApi}
             replying={replyId === m.message_id}
             // Only one reply form at a time: hide every Reply until it is closed.
             canReply={replyId === null}

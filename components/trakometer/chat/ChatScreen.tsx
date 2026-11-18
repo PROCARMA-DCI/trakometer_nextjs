@@ -30,6 +30,7 @@ interface Props {
   updateParticularMessageApi?: string;
   deleteParticularMessageApi?: string;
   favoriteChatmessageApi?: string;
+  setflagNotificationsApi?: string;
   isSendSmsShow?: boolean;
   isSendEmailShow?: boolean;
   isAppRatingShow?: boolean;
@@ -47,6 +48,7 @@ const ChatScreen = ({
   deleteParticularMessageApi = "",
   viewContractChatWindowApi = "",
   favoriteChatmessageApi = "",
+  setflagNotificationsApi = "",
   isSendSmsShow = true,
   isSendEmailShow = true,
   isAppRatingShow = true,
@@ -73,8 +75,8 @@ const ChatScreen = ({
     const r = await replyLoadThreadMessages(item, chatThreadApi);
     const data = {
       ...r.data,
-      canned_messages: r.data?.cannedmeesag,
-      google_feedback: r.data?.googlefeedback,
+      canned_messages: r.data?.cannedmeesag ?? r.data?.canned_messages,
+      google_feedback: r.data?.googlefeedback ?? r.data?.google_feedback,
     };
     setSpecificThread(data as SpecificThreadChat);
     setReplyLoadMessages(r.data.messages);
@@ -120,6 +122,11 @@ const ChatScreen = ({
             setViewMessages(null);
           }}
           onSent={() => loadViewMessages(selected)}
+          replyToThreadChatApi={replyToThreadChatApi}
+          updateParticularMessageApi={updateParticularMessageApi}
+          deleteParticularMessageApi={deleteParticularMessageApi}
+          setflagNotificationsApi={setflagNotificationsApi}
+          favoriteChatmessageApi={favoriteChatmessageApi}
           isSendSmsShow={isSendSmsShow}
           isSendEmailShow={isSendEmailShow}
           isAppRatingShow={isAppRatingShow}

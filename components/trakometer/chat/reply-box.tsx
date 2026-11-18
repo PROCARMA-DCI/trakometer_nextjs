@@ -15,6 +15,7 @@ export default function ReplyBox({
   message,
   onCancel,
   onSent,
+  replyToThreadChatApi,
   isSendSmsShow = true,
   isSendEmailShow = true,
   isAppRatingShow = true,
@@ -23,6 +24,7 @@ export default function ReplyBox({
   message: ChatMessage;
   onCancel: () => void;
   onSent: () => void;
+  replyToThreadChatApi?: string;
   isSendSmsShow?: boolean;
   isSendEmailShow?: boolean;
   isAppRatingShow?: boolean;
@@ -34,14 +36,15 @@ export default function ReplyBox({
 
   const send = async () => {
     setSending(true);
-    const res = await sendThreadReply({
+    const item = {
       message_reply: draft.trim(),
       message_id: message.message_id,
       // Hidden options are left out of the request entirely.
       isSendSMS: isSendSmsShow ? sms : undefined,
       isSendEmailNow: isSendEmailShow ? email : undefined,
       IsGuest: thread.is_guest,
-    });
+    };
+    const res = await sendThreadReply(item, replyToThreadChatApi);
     setSending(false);
     if (!res.ok) return toast.error(res.error ?? "Could not send the reply.");
     toast.success("Reply sent.");

@@ -13,6 +13,7 @@ export default function Page() {
       loading={loading}
       error={error}
       pager={pager}
+      isAppRatingShow={false}
     />
   );
 }

@@ -19,6 +19,7 @@ export default function Page() {
       updateParticularMessageApi={"updateParticularAnonymousMessage"}
       deleteParticularMessageApi={"deleteParticularAnonymousMessage"}
       favoriteChatmessageApi={"favoriteAnonymousChatmessage"}
+      setflagNotificationsApi={"setAnonymousflagNotifications"}
       isSendSmsShow={false}
       isSendEmailShow={false}
       isAppRatingShow={false}

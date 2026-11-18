@@ -13,6 +13,9 @@ export default function Page() {
       loading={loading}
       error={error}
       pager={pager}
+      isSendSmsShow={false}
+      isSendEmailShow={false}
+      isAppRatingShow={false}
     />
   );
 }

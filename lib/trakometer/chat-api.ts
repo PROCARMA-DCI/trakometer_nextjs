@@ -129,9 +129,13 @@ export async function deleteParticularMessage(
   };
 }
 
-export async function setMessageFlag(message_id: string, flag: 0 | 1) {
+export async function setMessageFlag(
+  message_id: string,
+  flag: 0 | 1,
+  api = "setflagNotifications",
+) {
   const res = await fetching({
-    url: `${BASE}/setflagNotifications`,
+    url: `${BASE}/${api}`,
     body: { message_id, flag },
   });
   return {
