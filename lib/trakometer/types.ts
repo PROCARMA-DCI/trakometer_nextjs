@@ -332,3 +332,27 @@ export interface KanopiThread {
   ContractNo: string;
   kanopi_thread_status: string;
 }
+
+/** One message in the Referral Chat log (`referalChatList`). */
+export interface ReferralMessage {
+  message_id: number;
+  threadid: string;
+  user1Name: string;
+  User2Name: string;
+  message: string;
+  ContractNo: string | null;
+  message_date: string;
+  message_time: string;
+  device_type: string;
+  icons?: { read_status?: string; device?: string };
+}
+
+export interface ReferralDay {
+  date: string;
+  day: string;
+  month: string;
+  year: string;
+  /** "Today" / "Yesterday" / "" */
+  date_label: string;
+  notifications: ReferralMessage[];
+}

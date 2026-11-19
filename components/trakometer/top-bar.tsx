@@ -14,6 +14,7 @@ import {
   LogOut,
   MessagesSquare,
   Search,
+  Share2,
   SlidersHorizontal,
   X,
 } from "lucide-react";
@@ -31,7 +32,9 @@ export default function TopBar() {
     ? pathname.replace(/^\/test/, "") || "/"
     : pathname;
   // Any chat channel (/nguage, /trade, …) counts as the chat portal.
-  const isChats = CHANNELS.some((c) => localPath.startsWith(c.link));
+  const isReferral = localPath.startsWith("/referralchat");
+  const isChats =
+    !isReferral && CHANNELS.some((c) => localPath.startsWith(c.link));
   const base = isEmbedded ? "/test" : "";
 
   const { range, setRange, search, applySearch, online, setOnline, logout } =
@@ -55,7 +58,7 @@ export default function TopBar() {
         onClick={() => setMenuOpen(false)}
         className={cn(
           "inline-flex flex-1 items-center justify-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-          !isChats && "bg-background text-foreground shadow-sm",
+          !isChats && !isReferral && "bg-background text-foreground shadow-sm",
         )}
       >
         <Gauge className="size-4" />
@@ -71,6 +74,17 @@ export default function TopBar() {
       >
         <MessagesSquare className="size-4" />
         Chat portal
+      </Link>
+      <Link
+        href={`${base}/referralchat`}
+        onClick={() => setMenuOpen(false)}
+        className={cn(
+          "inline-flex flex-1 items-center justify-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground text-nowrap",
+          isReferral && "bg-background text-foreground shadow-sm",
+        )}
+      >
+        <Share2 className="size-4" />
+        Referral Chat
       </Link>
     </nav>
   );
@@ -170,8 +184,8 @@ export default function TopBar() {
 
         <div className="flex-1" />
 
-        {rangeButtons("hidden md:flex")}
-        {searchForm("hidden lg:flex", "w-56")}
+        {!isReferral && rangeButtons("hidden md:flex")}
+        {!isReferral && searchForm("hidden lg:flex", "w-56")}
 
         <div
           title="Browser timezone"
@@ -189,7 +203,7 @@ export default function TopBar() {
           title="Filters & menu"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((o) => !o)}
-          className="lg:hidden"
+          className={isReferral ? "sm:hidden" : "lg:hidden"}
         >
           <SlidersHorizontal />
         </Button>
@@ -203,10 +217,15 @@ export default function TopBar() {
 
       {/* Whatever the header has no room for at this width. */}
       {menuOpen && (
-        <div className="flex flex-col gap-3 border-b px-3 py-3 sm:px-4 lg:hidden">
+        <div
+          className={cn(
+            "flex flex-col gap-3 border-b px-3 py-3 sm:px-4",
+            isReferral ? "sm:hidden" : "lg:hidden",
+          )}
+        >
           {navLinks("flex sm:hidden")}
-          {rangeButtons("flex md:hidden")}
-          {searchForm("flex", "min-w-0 flex-1")}
+          {!isReferral && rangeButtons("flex md:hidden")}
+          {!isReferral && searchForm("flex", "min-w-0 flex-1")}
           {isChats && onlineSwitch("flex justify-between sm:hidden")}
           {tz && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">

@@ -9,6 +9,7 @@ const RESOURCE_BACKENDS: Record<string, string> = {
   // Example — a resource served by a DIFFERENT backend:
   // weather: process.env.OTHER_API_URL ?? "",
   react: process.env.BASE_URL ?? "",
+  ReferalChat: process.env.REFERRAL_BASE_URL + "/react",
 };
 
 async function proxy(request: NextRequest, slugParts: string[]) {
