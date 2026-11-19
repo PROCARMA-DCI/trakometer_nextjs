@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { Check, Eye, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { ServiceDetailSheet } from "./service-detail-sheet";
+import { ServiceDeleteDialog } from "./service-delete-dialog";
 import { ServiceReplyDialog } from "./service-reply-dialog";
 
 /** `startIndex` = rows before the first loaded one, so a jump to page 2 numbers from 21. */
@@ -31,6 +32,7 @@ const makeColumns = (
   startIndex: number,
   onView: (row: ServicePlanList) => void,
   onCheck: (row: ServicePlanList) => void,
+  onDecline: (row: ServicePlanList) => void,
 ): ColumnType<ServicePlanList>[] => [
   {
     title: "#",
@@ -101,7 +103,14 @@ const makeColumns = (
             >
               <Check className="size-4" aria-label="Accept" />
             </button>
-            <X className="size-4" aria-label="Decline" />
+            <button
+              type="button"
+              title="Delete"
+              onClick={() => onDecline(row)}
+              className="rounded p-0.5 hover:bg-sky-100 dark:hover:bg-sky-950"
+            >
+              <X className="size-4" aria-label="Decline" />
+            </button>
           </span>
         );
       }
@@ -162,18 +171,29 @@ export default function Page() {
   const [detail, setDetail] = useState<ScheduleServiceDetail | null>(null);
   const [open, setOpen] = useState(false);
   const [replyRow, setReplyRow] = useState<ServicePlanList | null>(null);
+  const [deleteRow, setDeleteRow] = useState<ServicePlanList | null>(null);
   const columns = useMemo(
     () =>
-      makeColumns(pager.startIndex, async (row) => {
-        const d = await viewScheduleService(row.ScheduleServiceID);
-        if (!d) return;
-        setDetail(d);
-        setOpen(true);
-      }, setReplyRow),
+      makeColumns(
+        pager.startIndex,
+        async (row) => {
+          const d = await viewScheduleService(row.ScheduleServiceID);
+          if (!d) return;
+          setDetail(d);
+          setOpen(true);
+        },
+        setReplyRow,
+        setDeleteRow,
+      ),
     [pager.startIndex],
   );
   return (
     <div ref={topRef} className="flex-1 lg:p-3 lg:ml-5 ">
+      <ServiceDeleteDialog
+        row={deleteRow}
+        onClose={() => setDeleteRow(null)}
+        onDeleted={reload}
+      />
       <Table<ServicePlanList>
         data={rows}
         columns={columns}
@@ -192,7 +212,7 @@ export default function Page() {
           </div>
         }
       >
-        <div className="flex items-center justify-between  px-2 py-1.5 relative">
+        <div className="flex items-center justify-between px-2 py-1.5 relative">
           <ServicePageNav
             total={pager.total ?? rows.length}
             currentPage={pager.page + 1}

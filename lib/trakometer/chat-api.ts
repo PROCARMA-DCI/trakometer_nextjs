@@ -212,6 +212,22 @@ export async function chatWindowAll(
   return res.data as ScheduleChatWindow;
 }
 
+/** Service Plus decline (the X action): deletes the schedule request. */
+export async function deleteServiceReply(
+  schedule_id: string | number,
+  thread_id: string | number,
+) {
+  const res = await fetching({
+    url: `${BASE}/deleteServiceReply`,
+    body: { schedule_id, thread_id },
+    isFormdata: true,
+  });
+  return {
+    ok: res.ok && res.success !== false,
+    error: res.message as string | undefined,
+  };
+}
+
 /** Service Plus reply (the Check action): answers a schedule request. */
 export async function replyServicePlus(
   p: {
