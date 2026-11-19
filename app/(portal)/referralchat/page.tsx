@@ -2,26 +2,13 @@
 import { PageNav } from "@/components/cui/PageNav";
 import { usePortal } from "@/components/trakometer/portal-provider";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { fetching } from "@/lib/api/client";
 import type { ReferralDay, ReferralMessage } from "@/lib/trakometer/types";
 import { cn } from "@/lib/utils";
-import {
-  ChevronRight,
-  Clock,
-  Eye,
-  Monitor,
-  Search,
-  Smartphone,
-  X,
-} from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { ChevronRight, Clock, Monitor, Search, Smartphone } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ReferralDetailDialog } from "./detail-dialog";
 
 const PAGE_SIZE = 20;
 const RANGES = ["ITD", "YTD", "MTD"] as const;
@@ -33,9 +20,16 @@ const toApiDate = (v: string) => {
   return y && m && d ? `${m}/${d}/${y}` : "";
 };
 
+/** Values are provisional — the backend dev will confirm them. "" = all types. */
+const MESSAGE_TYPES = [
+  { value: "", label: "Select message type" },
+  { value: "0", label: "Customer" },
+  { value: "1", label: "Super Admin" },
+];
+
 interface Filters {
   range: Range;
-  contract: string;
+  messageType: string;
   from: string;
   to: string;
 }
@@ -45,7 +39,7 @@ export default function ReferralChatPage() {
   // `draft` = what the form shows; `applied` = what was last sent (Search / range click).
   const [draft, setDraft] = useState<Filters>({
     range: "YTD",
-    contract: "",
+    messageType: "",
     from: "",
     to: "",
   });
@@ -68,11 +62,12 @@ export default function ReferralChatPage() {
         body: {
           limit: PAGE_SIZE,
           offset: (page - 1) * PAGE_SIZE,
-          message_type: 0,
+          message_type: applied.messageType,
           FixedDateParameterNotification: applied.range,
           date_from_notification: toApiDate(applied.from),
           date_to_notification: toApiDate(applied.to),
-          contract_number: applied.contract.trim(),
+          // Custom dates replace the fixed range (assumed meaning of reset_fixedDate).
+          reset_fixedDate: applied.from || applied.to ? 1 : undefined,
         },
       });
       if (cancelled) return;
@@ -134,30 +129,22 @@ export default function ReferralChatPage() {
           search();
         }}
       >
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
-            Contract number
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4" />
-              <Input
-                value={draft.contract}
-                onChange={(e) =>
-                  setDraft({ ...draft, contract: e.target.value })
-                }
-                placeholder="Search contract number"
-                className="h-9 pl-8 pr-8"
-              />
-              {draft.contract && (
-                <button
-                  type="button"
-                  title="Clear"
-                  onClick={() => apply({ ...draft, contract: "" })}
-                  className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="size-4" />
-                </button>
-              )}
-            </div>
+            Message type
+            <select
+              value={draft.messageType}
+              onChange={(e) =>
+                setDraft({ ...draft, messageType: e.target.value })
+              }
+              className="h-9 rounded-md border border-input bg-background px-2 text-sm text-foreground"
+            >
+              {MESSAGE_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
             From
@@ -196,9 +183,11 @@ export default function ReferralChatPage() {
               </button>
             ))}
           </div>
-          <Button type="submit" size="sm" className="h-9 px-4">
-            <Search /> Search
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button type="submit" size="sm" className="h-9 px-4">
+              <Search /> Search
+            </Button>
+          </div>
         </div>
       </form>
 
@@ -235,14 +224,7 @@ export default function ReferralChatPage() {
         className="justify-center"
       />
 
-      <Dialog open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Message details</DialogTitle>
-          </DialogHeader>
-          {detail && <DetailBody m={detail} />}
-        </DialogContent>
-      </Dialog>
+      <ReferralDetailDialog message={detail} onClose={() => setDetail(null)} />
     </div>
   );
 }
@@ -316,7 +298,8 @@ function DayCard({
                   <Clock className="size-3" />
                   {m.message_time}
                 </span>
-                <Button
+                {/* working on this later */}
+                {/* <Button
                   variant="outline"
                   size="icon-sm"
                   title="Preview message"
@@ -324,7 +307,7 @@ function DayCard({
                   onClick={() => onToggle(m.message_id)}
                 >
                   <Eye />
-                </Button>
+                </Button> */}
                 <Button
                   size="sm"
                   className="h-7 bg-green-600 px-2 text-xs hover:bg-green-700"
@@ -343,27 +326,5 @@ function DayCard({
         })}
       </ul>
     </section>
-  );
-}
-
-function DetailBody({ m }: { m: ReferralMessage }) {
-  const rows: [string, string | null][] = [
-    ["From", m.user1Name],
-    ["To", m.User2Name],
-    ["Contract", m.ContractNo],
-    ["Sent", `${m.message_date} ${m.message_time}`],
-  ];
-  return (
-    <div className="flex flex-col gap-3 text-sm">
-      <dl className="grid grid-cols-[5rem_1fr] gap-y-1.5">
-        {rows.map(([k, v]) => (
-          <div key={k} className="contents">
-            <dt className="text-muted-foreground">{k}</dt>
-            <dd className="font-medium">{v || "—"}</dd>
-          </div>
-        ))}
-      </dl>
-      <p className="rounded-md bg-muted/60 px-3 py-2">{m.message}</p>
-    </div>
   );
 }

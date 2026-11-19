@@ -165,6 +165,7 @@ export interface SpecificThreadChat {
   app_rating: AppRating;
   google_feedback?: GoogleFeedback[];
   canned_messages?: CannedMessage[];
+  marketing_warning?: string;
   [key: string]: unknown;
 }
 export interface AppRating {
@@ -341,6 +342,7 @@ export interface ReferralMessage {
   User2Name: string;
   message: string;
   ContractNo: string | null;
+  IsGuest?: string | number;
   message_date: string;
   message_time: string;
   device_type: string;
@@ -355,4 +357,47 @@ export interface ReferralDay {
   /** "Today" / "Yesterday" / "" */
   date_label: string;
   notifications: ReferralMessage[];
+}
+
+/** `viewDetailThreadMsg` — one contract's referral threads. */
+export interface ReferralThreadMessage {
+  message_id: number;
+  sender_name: string;
+  sender_phone: string | null;
+  sender_image: string;
+  message: string;
+  title: string | null;
+  message_date: string;
+  message_time: string;
+  read_status: string;
+  upload_img: string;
+}
+
+export interface ReferralThread {
+  threadid: number;
+  FIManagerID: number;
+  can_reply: boolean;
+  total_messages: number;
+  messages: ReferralThreadMessage[];
+}
+
+export interface ReferralCustomer {
+  ContractNo: string;
+  CustomerFName: string;
+  CustomerLName: string;
+  PrimaryEmail: string;
+  PhoneHome: string;
+  DealerTitle: string;
+  VehYear: string;
+  Make: string;
+  Model: string;
+  VIN: string;
+  CityName: string;
+}
+
+export interface ReferralDetail {
+  ContractNo: string;
+  customer: ReferralCustomer;
+  total_threads: number;
+  threads: ReferralThread[];
 }

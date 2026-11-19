@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { fetching } from "@/lib/api/client";
 import type { RangeKey } from "@/lib/trakometer/types";
+import { decodeToken } from "@/lib/helpers";
 import { Gauge, Loader2, ShieldAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -88,6 +89,8 @@ export function PortalProvider({ children }: { children: ReactNode }) {
       const url = new URL(window.location.href);
       const token = url.searchParams.get(TOKEN_PARAM);
       usedUrlToken.current = Boolean(token);
+      // TEMP: inspect the token to see whether it carries the dealer list — remove once checked.
+      if (token) console.log("[token] decoded:", decodeToken(token));
       if (token) {
         const res = await fetching({
           url: "/api/auth/session",

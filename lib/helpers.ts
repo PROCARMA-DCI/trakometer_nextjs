@@ -31,3 +31,27 @@ export const utility = {
     );
   },
 };
+
+/**
+ * Best-effort decode of the host app's `?id=` token. Handles a JWT (payload = 2nd part)
+ * or a plain base64(url) JSON string; returns null if it is neither (e.g. an opaque token).
+ */
+export function decodeToken(token: string): unknown {
+  const b64 = (s: string) => {
+    const std = s.replace(/-/g, "+").replace(/_/g, "/");
+    const bin = atob(std + "=".repeat((4 - (std.length % 4)) % 4));
+    return decodeURIComponent(
+      Array.from(bin, (c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0")).join(""),
+    );
+  };
+  const parts = token.split(".");
+  for (const candidate of [parts.length === 3 ? parts[1] : "", token]) {
+    if (!candidate) continue;
+    try {
+      return JSON.parse(b64(candidate));
+    } catch {
+      /* try the next shape */
+    }
+  }
+  return null;
+}
