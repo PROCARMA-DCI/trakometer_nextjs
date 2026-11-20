@@ -247,6 +247,7 @@ function ReplyBox({
         message_reply: reply,
         isSendEmailNow: sendEmail ? 1 : 0,
         isSendSMS: 0,
+        message_id: "",
       },
     });
     if (res.status === 401 || res.status === 403) {

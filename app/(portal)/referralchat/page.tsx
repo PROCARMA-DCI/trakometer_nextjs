@@ -8,6 +8,8 @@ import type { ReferralDay, ReferralMessage } from "@/lib/trakometer/types";
 import { cn } from "@/lib/utils";
 import { ChevronRight, Clock, Monitor, Search, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
+import { SearchSelectField } from "@/components/cui/SearchSelectField";
+import { SimpleSelectField } from "@/components/cui/SimpleSelectField";
 import { ReferralDetailDialog } from "./detail-dialog";
 
 const PAGE_SIZE = 20;
@@ -15,23 +17,25 @@ const RANGES = ["ITD", "YTD", "MTD"] as const;
 type Range = (typeof RANGES)[number] | "";
 
 /** <input type=date> gives yyyy-mm-dd; the API (like the old portal) uses mm/dd/yyyy. */
-const toApiDate = (v: string) => {
+const toApiDate = (v?: string) => {
+  if (!v) return undefined;
   const [y, m, d] = v.split("-");
   return y && m && d ? `${m}/${d}/${y}` : "";
 };
 
 /** Values are provisional — the backend dev will confirm them. "" = all types. */
 const MESSAGE_TYPES = [
-  { value: "", label: "Select message type" },
-  { value: "0", label: "Customer" },
-  { value: "1", label: "Super Admin" },
+  { value: "", label: "All types" },
+  { value: 1, label: "Customer" },
+  { value: 2, label: "Super Admin" },
 ];
 
 interface Filters {
   range: Range;
-  messageType: string;
-  from: string;
-  to: string;
+  messageType?: number;
+  dealerId?: string;
+  from?: string;
+  to?: string;
 }
 
 export default function ReferralChatPage() {
@@ -39,9 +43,6 @@ export default function ReferralChatPage() {
   // `draft` = what the form shows; `applied` = what was last sent (Search / range click).
   const [draft, setDraft] = useState<Filters>({
     range: "YTD",
-    messageType: "",
-    from: "",
-    to: "",
   });
   const [applied, setApplied] = useState<Filters>(draft);
   const [page, setPage] = useState(1);
@@ -51,6 +52,28 @@ export default function ReferralChatPage() {
   const [loading, setLoading] = useState(false);
   const [openIds, setOpenIds] = useState<Set<number>>(new Set());
   const [detail, setDetail] = useState<ReferralMessage | null>(null);
+  const [dealers, setDealers] = useState<{ value: string; label: string }[]>([
+    { value: "", label: "All dealers" },
+  ]);
+
+  useEffect(() => {
+    (async () => {
+      const res = await fetching<{
+        data?: { dealers?: { DealerID: string; DealerTitle: string }[] };
+      }>({
+        url: "/api/ReferalChat/dealesList",
+        showLoader: false,
+      });
+      if (!res.ok) return;
+      setDealers([
+        { value: "", label: "All dealers" },
+        ...(res.data?.dealers ?? []).map((d) => ({
+          value: String(d.DealerID),
+          label: d.DealerTitle,
+        })),
+      ]);
+    })();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -62,10 +85,12 @@ export default function ReferralChatPage() {
         body: {
           limit: PAGE_SIZE,
           offset: (page - 1) * PAGE_SIZE,
-          message_type: applied.messageType,
+          message_type: applied?.messageType,
+          // Param name is assumed — confirm with the backend dev.
+          dealer_id: applied.dealerId || undefined,
           FixedDateParameterNotification: applied.range,
-          date_from_notification: toApiDate(applied.from),
-          date_to_notification: toApiDate(applied.to),
+          date_from_notification: toApiDate(applied?.from),
+          date_to_notification: toApiDate(applied?.to),
           // Custom dates replace the fixed range (assumed meaning of reset_fixedDate).
           reset_fixedDate: applied.from || applied.to ? 1 : undefined,
         },
@@ -130,22 +155,26 @@ export default function ReferralChatPage() {
         }}
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
-            Message type
-            <select
-              value={draft.messageType}
-              onChange={(e) =>
-                setDraft({ ...draft, messageType: e.target.value })
-              }
-              className="h-9 rounded-md border border-input bg-background px-2 text-sm text-foreground"
-            >
-              {MESSAGE_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SearchSelectField
+            label="Dealer"
+            wrapperClassName="text-xs font-medium text-muted-foreground"
+            className="h-9 text-foreground"
+            options={dealers}
+            placeholder="Select dealer"
+            value={draft.dealerId ?? ""}
+            onChange={(v) => setDraft({ ...draft, dealerId: v || undefined })}
+          />
+          <SimpleSelectField
+            label="Message type"
+            wrapperClassName="text-xs font-medium text-muted-foreground"
+            className="h-9 text-foreground"
+            options={MESSAGE_TYPES}
+            placeholder="Select message type"
+            value={draft.messageType ?? ""}
+            onChange={(v) =>
+              setDraft({ ...draft, messageType: v ? Number(v) : undefined })
+            }
+          />
           <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
             From
             <Input
