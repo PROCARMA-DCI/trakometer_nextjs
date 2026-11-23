@@ -44,7 +44,9 @@ export type ChannelId =
   | "service"
   | "kanopi"
   | "notification"
-  | "anonymous";
+  | "anonymous"
+  | "favourite"
+  | "flag";
 export type AlertFilter = "star" | "new" | "flag" | null;
 export type ThreadMode = "reply" | "full";
 

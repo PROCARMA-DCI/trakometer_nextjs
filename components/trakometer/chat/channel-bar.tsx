@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CHANNELS } from "@/lib/trakometer/data";
+import { CHANNELS, alertForPath } from "@/lib/trakometer/data";
 import type { AlertFilter, ChannelId } from "@/lib/trakometer/types";
 import { cn } from "@/lib/utils";
 import {
@@ -16,7 +16,7 @@ import {
   RefreshCw,
   Star,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const CHANNEL_ICONS: Record<
   ChannelId,
@@ -25,10 +25,11 @@ const CHANNEL_ICONS: Record<
   ngauge: Gauge,
   trade: Car,
   service: CalendarClock,
-
   anonymous: EyeOff,
   kanopi: MessagesSquare,
   notification: BellDot,
+  favourite: Star,
+  flag: Flag,
 };
 
 const ALERTS: {
@@ -83,6 +84,7 @@ export default function ChannelBar({
   onRefresh,
 }: Props) {
   const router = useRouter();
+  const activeAlert = alertForPath(usePathname())?.id ?? alert;
   return (
     <div className="flex flex-col gap-1.5 border-b bg-background px-3 py-2 md:flex-row md:flex-wrap md:items-center">
       <div className="scroll-whatsapp -mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:p-0">
@@ -96,7 +98,7 @@ export default function ChannelBar({
               }}
               className={cn(
                 "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-medium transition-colors",
-                channel === c.id
+                channel === c.id && !activeAlert
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border text-muted-foreground hover:text-foreground",
               )}
@@ -120,7 +122,7 @@ export default function ChannelBar({
               onClick={() => router.push(a.link)}
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium transition-colors",
-                alert === a.id
+                activeAlert === a.id
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground",
               )}

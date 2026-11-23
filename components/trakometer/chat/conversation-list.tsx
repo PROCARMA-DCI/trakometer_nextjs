@@ -4,7 +4,7 @@ import { InfiniteScroll } from "@/components/cui/InfiniteScroll";
 import { PageNav } from "@/components/cui/PageNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CHANNELS } from "@/lib/trakometer/data";
+import { CHANNELS, alertForPath } from "@/lib/trakometer/data";
 import type { ChannelId, ChatListData } from "@/lib/trakometer/types";
 import { showDateAndTime, showDateAndTimeRaw } from "@/lib/utility";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,7 @@ import {
   User,
   Video,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useRef, type MouseEvent } from "react";
 import { type Pager } from "./chat-feed";
 
@@ -57,7 +58,10 @@ export default function ConversationList({
   pager,
   onOpen,
 }: Props) {
-  const chName = CHANNELS.find((c) => c.id === channel)?.label;
+  const pathname = usePathname();
+  const chName =
+    alertForPath(pathname)?.label ??
+    CHANNELS.find((c) => c.id === channel)?.label;
   const { total, hasNext, onLoadMore, page, pageSize, onPage } = pager ?? {
     total: null,
     limit: 20,

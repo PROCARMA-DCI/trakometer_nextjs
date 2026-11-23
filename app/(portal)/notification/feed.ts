@@ -22,10 +22,6 @@ export const notificationFeed: ChatFeed = {
           gps_connected: item?.IsGpsContract == "1" ? true : false,
         },
       })) ?? ([] as ChatListData[]),
-    pagination: {
-      limit: res.limit,
-      offset: res.offset,
-      total: res.total_records,
-    },
+    pagination: res.pagination,
   }),
 };

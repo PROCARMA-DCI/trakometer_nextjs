@@ -2,7 +2,7 @@ import type { ChatFeed } from "@/components/trakometer/chat/chat-feed";
 import type { ChatListData } from "@/lib/trakometer/types";
 
 export const favouriteFeed: ChatFeed = {
-  channel: "ngauge",
+  channel: "favourite",
   url: "/api/react/Trakometer/favoriteChatsList",
   body: ({ range, search, limit, offset }) => ({
     limit,

@@ -200,3 +200,15 @@ export const CHANNELS: {
 ];
 
 export const AGENT = { name: "AIZAH AWAIS", initials: "AA" };
+
+/** Alert pages (star/flag) reuse a channel's feed, so the active route decides what is "current". */
+export const ALERT_PAGES: { id: "star" | "flag"; label: string; link: string }[] = [
+  { id: "star", label: "Starred", link: "/favourite" },
+  { id: "flag", label: "Flagged", link: "/flag" },
+];
+
+export function alertForPath(pathname: string | null) {
+  return ALERT_PAGES.find(
+    (a) => pathname === a.link || pathname?.startsWith(a.link + "/"),
+  );
+}
