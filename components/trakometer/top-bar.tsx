@@ -37,7 +37,7 @@ export default function TopBar() {
     !isReferral && CHANNELS.some((c) => localPath.startsWith(c.link));
   const base = isEmbedded ? "/test" : "";
 
-  const { range, setRange, search, applySearch, online, setOnline, logout } =
+  const { range, setRange, search, applySearch, online, setOnline, logout, embedded } =
     usePortal();
   const [q, setQ] = useState(search);
   const [tz, setTz] = useState("");
@@ -210,9 +210,11 @@ export default function TopBar() {
 
         <ThemeToggle />
 
-        <Button variant="ghost" size="icon" title="Sign out" onClick={logout}>
-          <LogOut />
-        </Button>
+        {!embedded && (
+          <Button variant="ghost" size="icon" title="Sign out" onClick={logout}>
+            <LogOut />
+          </Button>
+        )}
       </header>
 
       {/* Whatever the header has no room for at this width. */}

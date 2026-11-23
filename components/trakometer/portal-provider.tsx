@@ -41,6 +41,8 @@ interface PortalCtx {
    */
   unauthorized: (message?: string) => void;
   logout: () => Promise<void>;
+  /** Opened by the host app with `?id=<token>` (iframe) → the host owns sign-out, so hide ours. */
+  embedded: boolean;
 }
 
 const Ctx = createContext<PortalCtx | null>(null);
@@ -61,6 +63,7 @@ export function PortalProvider({ children }: { children: ReactNode }) {
   const [range, setRange] = useState<RangeKey>("30");
   const [search, setSearch] = useState("");
   const [online, setOnline] = useState(true);
+  const [embedded, setEmbedded] = useState(false);
 
   const [status, setStatus] = useState<AuthStatus>("checking");
   const [deniedMessage, setDeniedMessage] = useState<string | null>(null);
@@ -89,6 +92,13 @@ export function PortalProvider({ children }: { children: ReactNode }) {
       const url = new URL(window.location.href);
       const token = url.searchParams.get(TOKEN_PARAM);
       usedUrlToken.current = Boolean(token);
+      // The token is stripped from the URL, so remember it for reloads inside the same iframe.
+      try {
+        if (token) sessionStorage.setItem("embedded", "1");
+        setEmbedded(Boolean(token) || sessionStorage.getItem("embedded") === "1");
+      } catch {
+        setEmbedded(Boolean(token));
+      }
       // TEMP: inspect the token to see whether it carries the dealer list — remove once checked.
       if (token) console.log("[token] decoded:", decodeToken(token));
       if (token) {
@@ -172,6 +182,7 @@ export function PortalProvider({ children }: { children: ReactNode }) {
         showToast,
         unauthorized,
         logout,
+        embedded,
       }}
     >
       {children}
