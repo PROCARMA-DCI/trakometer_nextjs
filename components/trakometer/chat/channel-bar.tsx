@@ -36,10 +36,29 @@ const ALERTS: {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   className: string;
+  link: string;
 }[] = [
-  { id: "star", label: "Starred", icon: Star, className: "text-amber-500" },
-  { id: "new", label: "New", icon: BellRing, className: "text-red-500" },
-  { id: "flag", label: "Flagged", icon: Flag, className: "text-red-600" },
+  {
+    id: "star",
+    label: "Starred",
+    icon: Star,
+    className: "text-amber-500",
+    link: "/favourite",
+  },
+  {
+    id: "new",
+    label: "New",
+    icon: BellRing,
+    className: "text-red-500",
+    link: "/notification",
+  },
+  {
+    id: "flag",
+    label: "Flagged",
+    icon: Flag,
+    className: "text-red-600",
+    link: "/flag",
+  },
 ];
 
 interface Props {
@@ -98,7 +117,7 @@ export default function ChannelBar({
             <button
               key={a.id}
               title={a.label}
-              onClick={() => onAlert(a.id)}
+              onClick={() => router.push(a.link)}
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium transition-colors",
                 alert === a.id
@@ -117,7 +136,7 @@ export default function ChannelBar({
         <Button
           variant="outline"
           size="icon"
-          title="Refresh notifications"
+          title="Refresh Data"
           onClick={onRefresh}
         >
           <RefreshCw className={cn("size-4", spinning && "animate-spin")} />

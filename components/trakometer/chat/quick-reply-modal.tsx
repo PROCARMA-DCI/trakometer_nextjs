@@ -385,11 +385,13 @@ export default function QuickReplyModal({
             draft={draft}
             onInsert={(text) => setDraft((d) => appendToDraft(d, text))}
           />
-          <div>
-            <p className="w-full p-2 bg-destructive/30 rounded">
-              {thread?.marketing_warning}
-            </p>
-          </div>
+          {thread?.marketing_warning && (
+            <div>
+              <p className="w-full p-2 bg-destructive/30 rounded">
+                {thread.marketing_warning}
+              </p>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
