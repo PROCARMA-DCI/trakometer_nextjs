@@ -33,6 +33,9 @@ export const flagFeed: ChatFeed = {
           item.notification_time as string,
         ),
       })) ?? ([] as ChatListData[]),
-    pagination: res.pagination,
+    pagination: {
+      ...res.data.pagination,
+      total: res.data.pagination.total_records,
+    },
   }),
 };

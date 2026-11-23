@@ -14,7 +14,7 @@ export const favouriteFeed: ChatFeed = {
   parse: (res) => ({
     // rows: (res.data?.notifications ?? []) as ChatListData[],
     rows:
-      res.data.notifications.map((item: Record<string, unknown>) => ({
+      res.data?.notifications.map((item: Record<string, unknown>) => ({
         ...item,
         icons: {
           device: item.device_type,
@@ -23,9 +23,9 @@ export const favouriteFeed: ChatFeed = {
         },
       })) ?? ([] as ChatListData[]),
     pagination: {
-      limit: res.limit,
-      offset: res.offset,
-      total: res.total_records,
+      limit: res.data?.limit,
+      offset: res.data?.offset,
+      total: res.data?.total_records,
     },
   }),
 };

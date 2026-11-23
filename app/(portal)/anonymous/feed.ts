@@ -24,9 +24,9 @@ export const anonymousFeed: ChatFeed = {
       },
     })),
     pagination: {
-      limit: res.limit,
-      offset: res.offset,
-      total: res.total_records,
+      limit: res.data.limit,
+      offset: res.data.offset,
+      total: res.data.total_records,
     },
   }),
 };

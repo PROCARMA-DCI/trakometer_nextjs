@@ -14,9 +14,9 @@ export const tradeFeed: ChatFeed = {
   parse: (res) => ({
     rows: (res.data?.notifications ?? []) as ChatListData[],
     pagination: {
-      limit: res.limit,
-      offset: res.offset,
-      total: res.total_records,
+      limit: res.data?.limit ?? res.limit,
+      offset: res.data?.offset ?? res.offset,
+      total: res.data?.total_records ?? res.total_records,
     },
   }),
 };
