@@ -13,6 +13,9 @@ import {
 } from "react";
 import ChannelBar from "./channel-bar";
 
+/** Unread badges reported by a feed (only the notification API for now). */
+export type ChatCounts = Record<string, number | string | null | undefined>;
+
 export type Flags = Record<string, boolean>;
 
 /** Channel-bar state the screen below needs (filter, local star/flag marks, mobile "chat open"). */
@@ -38,11 +41,13 @@ const toggle = (set: Dispatch<SetStateAction<Flags>>) => (key: string) =>
 
 const ChatLayout = ({
   channel,
+  counts,
   spinning,
   onRefresh,
   children,
 }: {
   channel: ChannelId;
+  counts?: ChatCounts;
   spinning: boolean;
   onRefresh: () => void;
   children: ReactNode;
@@ -69,6 +74,7 @@ const ChatLayout = ({
         <div className={threadOpen ? "hidden md:block" : undefined}>
           <ChannelBar
             channel={channel}
+            counts={counts}
             push={push}
             onPush={() => setPush(!push)}
             alert={alert}

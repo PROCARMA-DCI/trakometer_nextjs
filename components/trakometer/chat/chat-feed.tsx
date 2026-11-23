@@ -17,7 +17,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import ChatLayout from "./ChatLayout";
+import ChatLayout, { type ChatCounts } from "./ChatLayout";
 
 /** What differs between chat channels: which API to call and how to read its answer. */
 export interface ChatFeed<T = ChatListData> {
@@ -34,6 +34,8 @@ export interface ChatFeed<T = ChatListData> {
   parse: (res: Record<string, any>) => {
     rows: T[];
     pagination: Pagination;
+    /** Unread badges for the channel bar (only the notification API sends them). */
+    counts?: ChatCounts;
   };
 }
 
@@ -83,6 +85,7 @@ export function ChatFeedProvider<T = ChatListData>({
   const { range, searchTerm, unauthorized } = usePortal();
   const [rows, setRows] = useState<T[]>([]);
   const [total, setTotal] = useState<number | null>(null);
+  const [counts, setCounts] = useState<ChatCounts | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -151,6 +154,7 @@ export function ChatFeedProvider<T = ChatListData>({
         return;
       }
       const parsed = parse(res);
+      setCounts(parsed.counts);
       setError(null);
       // The window's first page replaces the list; later pages are appended (infinite scroll).
       setRows((prev) =>
@@ -203,7 +207,12 @@ export function ChatFeedProvider<T = ChatListData>({
         },
       }}
     >
-      <ChatLayout channel={feed.channel} spinning={loading} onRefresh={reload}>
+      <ChatLayout
+        channel={feed.channel}
+        counts={counts}
+        spinning={loading}
+        onRefresh={reload}
+      >
         {children}
       </ChatLayout>
     </Ctx.Provider>

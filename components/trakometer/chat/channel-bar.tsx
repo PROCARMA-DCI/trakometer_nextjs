@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Star,
 } from "lucide-react";
+import type { ChatCounts } from "./ChatLayout";
 import { usePathname, useRouter } from "next/navigation";
 
 const CHANNEL_ICONS: Record<
@@ -30,6 +31,13 @@ const CHANNEL_ICONS: Record<
   notification: BellDot,
   favourite: Star,
   flag: Flag,
+};
+
+/** Channel → key in the notification API's `counts`. Others show no badge. */
+const COUNT_KEYS: Partial<Record<ChannelId, string>> = {
+  notification: "unread_notifications",
+  anonymous: "anonymous_notifications",
+  kanopi: "kanopi_mobile_unread",
 };
 
 const ALERTS: {
@@ -64,6 +72,8 @@ const ALERTS: {
 
 interface Props {
   channel: ChannelId;
+  /** Badge numbers; none given → no badges. */
+  counts?: ChatCounts;
   push: boolean;
   onPush: () => void;
   alert: AlertFilter;
@@ -75,6 +85,7 @@ interface Props {
 
 export default function ChannelBar({
   channel,
+  counts,
   push,
   onPush,
   alert,
@@ -90,6 +101,8 @@ export default function ChannelBar({
       <div className="scroll-whatsapp -mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:p-0">
         {CHANNELS.map((c) => {
           const Icon = CHANNEL_ICONS[c.id];
+          const key = COUNT_KEYS[c.id];
+          const badge = key && counts ? Number(counts[key] ?? 0) : null;
           return (
             <button
               key={c.id}
@@ -105,6 +118,16 @@ export default function ChannelBar({
             >
               <Icon className="size-3.5" />
               {c.label}
+              {badge !== null && (
+                <span
+                  className={cn(
+                    "min-w-5 rounded-full px-1.5 text-center text-[10px] font-semibold leading-5 text-white",
+                    badge > 0 ? "bg-red-500" : "bg-muted-foreground/60",
+                  )}
+                >
+                  {badge > 99 ? "99+" : badge}
+                </span>
+              )}
             </button>
           );
         })}

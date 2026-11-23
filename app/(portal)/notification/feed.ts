@@ -26,5 +26,6 @@ export const notificationFeed: ChatFeed = {
       ...res.data.pagination,
       total: res.data.pagination.total_records,
     },
+    counts: res.data.counts,
   }),
 };
