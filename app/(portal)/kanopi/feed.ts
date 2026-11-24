@@ -9,7 +9,7 @@ export const kanopiFeed: ChatFeed<KanopiThread> = {
     limit,
     offset,
     sort: "",
-    FixedParameter: range,
+    FixedDateParameterNotification: range,
   }),
   // { success, message, data: { pagination: { limit, offset, total_records, has_more }, kanopi_threads: [] } }
   parse: (res) => ({
