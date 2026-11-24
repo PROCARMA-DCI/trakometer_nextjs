@@ -1,5 +1,7 @@
 "use client";
 import { PageNav } from "@/components/cui/PageNav";
+import { SearchSelectField } from "@/components/cui/SearchSelectField";
+import { SimpleSelectField } from "@/components/cui/SimpleSelectField";
 import { usePortal } from "@/components/trakometer/portal-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,8 +10,6 @@ import type { ReferralDay, ReferralMessage } from "@/lib/trakometer/types";
 import { cn } from "@/lib/utils";
 import { ChevronRight, Clock, Monitor, Search, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
-import { SearchSelectField } from "@/components/cui/SearchSelectField";
-import { SimpleSelectField } from "@/components/cui/SimpleSelectField";
 import { ReferralDetailDialog } from "./detail-dialog";
 
 const PAGE_SIZE = 20;
@@ -75,13 +75,18 @@ export default function ReferralChatPage() {
     })();
   }, []);
 
+  // StrictMode (dev) runs the effect twice; both runs share one in-flight request.
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const res = await fetching({
+      const key = JSON.stringify({ applied, page });
+
+      const req = fetching({
         url: "/api/ReferalChat/referalChatList",
-        showLoader: false,
+        showLoader: true,
+        badgeLoading: "Referral List Loading",
         body: {
           limit: PAGE_SIZE,
           offset: (page - 1) * PAGE_SIZE,
@@ -95,6 +100,8 @@ export default function ReferralChatPage() {
           reset_fixedDate: applied.from || applied.to ? 1 : undefined,
         },
       });
+
+      const res = await req;
       if (cancelled) return;
       setLoading(false);
       if (res.status === 401 || res.status === 403) {
